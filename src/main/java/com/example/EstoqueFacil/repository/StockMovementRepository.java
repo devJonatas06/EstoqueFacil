@@ -57,4 +57,28 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
         ORDER BY sm.movementDate DESC
         """)
     List<StockMovement> findFullHistoryByProduct(@Param("productId") Long productId);
+
+    // Adicionar no StockMovementRepository.java
+
+    @Query("""
+    SELECT sm FROM StockMovement sm
+    WHERE sm.batch.product.id = :productId
+    AND sm.movementDate BETWEEN :start AND :end
+    ORDER BY sm.movementDate DESC
+    """)
+    List<StockMovement> findByProductAndPeriod(
+            @Param("productId") Long productId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    @Query("""
+    SELECT sm.batch.product.id, SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice))
+    FROM StockMovement sm
+    WHERE sm.type = 'SALE'
+    AND sm.movementDate BETWEEN :start AND :end
+    GROUP BY sm.batch.product.id
+    ORDER BY SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) DESC
+    """)
+    List<Object[]> findProfitByProduct(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }
