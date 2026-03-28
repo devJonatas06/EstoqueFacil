@@ -52,4 +52,25 @@ public interface    ProductBatchRepository extends JpaRepository<ProductBatch, L
         ORDER BY b.entryDate DESC
         """)
     List<ProductBatch> findActiveBatchesByProduct(@Param("productId") Long productId);
+
+    // Adicionar no ProductBatchRepository.java
+
+    @Query("""
+    SELECT b FROM ProductBatch b
+    WHERE b.expirationDate BETWEEN :start AND :end
+    AND b.active = true
+    ORDER BY b.expirationDate ASC
+    """)
+    List<ProductBatch> findExpiringBatchesBetween(
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
+
+    @Query("""
+    SELECT b FROM ProductBatch b
+    WHERE b.expirationDate < :date
+    AND b.active = true
+    ORDER BY b.expirationDate ASC
+    """)
+    List<ProductBatch> findExpiredBatches(@Param("date") LocalDate date);
 }
