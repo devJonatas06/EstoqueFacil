@@ -1,4 +1,10 @@
 package com.example.EstoqueFacil.service;
 
-public class UserService {
+import com.example.EstoqueFacil.entity.User;
+
+public interface UserService {
+
+    User create(User user);
+
+    User findByEmail(String email);
 }
