@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface ProductBatchRepository extends JpaRepository<ProductBatch, Long> {
+public interface    ProductBatchRepository extends JpaRepository<ProductBatch, Long> {
 
     Page<ProductBatch> findByProductId(Long productId, Pageable pageable);
 
