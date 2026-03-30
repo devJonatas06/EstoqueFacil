@@ -7,14 +7,12 @@ import lombok.Data;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LowStockProductDTO {
-
+public class CriticalStockProductDTO {
     private Long productId;
     private String name;
     private String barcode;
     private Integer currentStock;
     private Integer minimumStock;
     private Integer deficit;
-    private String status;
     private Integer daysBelowMinimum;
 }
