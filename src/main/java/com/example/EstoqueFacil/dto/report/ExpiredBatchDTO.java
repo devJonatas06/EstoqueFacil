@@ -3,7 +3,6 @@ package com.example.EstoqueFacil.dto.report;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
