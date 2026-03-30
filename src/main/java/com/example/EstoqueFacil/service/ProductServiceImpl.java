@@ -1,9 +1,12 @@
 package com.example.EstoqueFacil.service;
 
+import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
+import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
 import com.example.EstoqueFacil.entity.Category;
 import com.example.EstoqueFacil.entity.Product;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
+import com.example.EstoqueFacil.mapper.ProductMapper;
 import com.example.EstoqueFacil.repository.CategoryRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +20,10 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
 
     @Override
-    public Product create(Product product) {
+    public ProductResponseDTO create(Product product) {
 
         if (productRepository.existsByBarcode(product.getBarcode())) {
             throw new BusinessException("Código de barras já existe");
@@ -31,39 +35,49 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setActive(true);
 
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        
+        // ✅ Retorna DTO, não Entity!
+        return productMapper.toResponseDTO(savedProduct);
     }
 
     @Override
-    public Product update(Long id, Product updated) {
+    public ProductResponseDTO update(Long id, ProductUpdateDTO updateDTO) {
 
-        Product product = findById(id);
+        Product product = findByIdEntity(id);
+        
+        productMapper.updateEntity(product, updateDTO);
 
-        product.setName(updated.getName());
-        product.setMaker(updated.getMaker());
-        product.setDescription(updated.getDescription());
-        product.setSalePrice(updated.getSalePrice());
-        product.setCostPrice(updated.getCostPrice());
-        product.setMinimumStock(updated.getMinimumStock());
-
-        return productRepository.save(product);
+        Product updatedProduct = productRepository.save(product);
+        
+        // ✅ Retorna DTO, não Entity!
+        return productMapper.toResponseDTO(updatedProduct);
     }
 
     @Override
-    public Product findById(Long id) {
-        return productRepository.findByIdWithCategory(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
+    public ProductResponseDTO findById(Long id) {
+        Product product = findByIdEntity(id);
+        // ✅ Retorna DTO, não Entity!
+        return productMapper.toResponseDTO(product);
     }
 
     @Override
-    public Page<Product> findAll(Pageable pageable) {
-        return productRepository.findByActiveTrue(pageable);
+    public Page<ProductResponseDTO> findAll(Pageable pageable) {
+        Page<Product> products = productRepository.findByActiveTrue(pageable);
+        // ✅ Retorna Page de DTO, não Entity!
+        return products.map(productMapper::toResponseDTO);
     }
 
     @Override
     public void deactivate(Long id) {
-        Product product = findById(id);
+        Product product = findByIdEntity(id);
         product.setActive(false);
         productRepository.save(product);
+    }
+
+    // Método auxiliar interno - retorna Entity para operações internas
+    private Product findByIdEntity(Long id) {
+        return productRepository.findByIdWithCategory(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
     }
 }

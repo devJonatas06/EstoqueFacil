@@ -1,18 +1,20 @@
 package com.example.EstoqueFacil.service;
 
+import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
+import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
 import com.example.EstoqueFacil.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
 
-    Product create(Product product);
+    ProductResponseDTO create(Product product);
 
-    Product update(Long id, Product product);
+    ProductResponseDTO update(Long id, ProductUpdateDTO updateDTO);
 
-    Product findById(Long id);
+    ProductResponseDTO findById(Long id);
 
-    Page<Product> findAll(Pageable pageable);
+    Page<ProductResponseDTO> findAll(Pageable pageable);
 
     void deactivate(Long id);
 }
