@@ -1,5 +1,7 @@
 package com.example.EstoqueFacil.service;
 
+import com.example.EstoqueFacil.dto.stock.StockEntryDTO;
+import com.example.EstoqueFacil.dto.stock.StockExitDTO;
 import com.example.EstoqueFacil.entity.*;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
@@ -11,7 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,50 +25,44 @@ public class StockServiceImpl implements StockService {
     private final StockMovementRepository stockMovementRepository;
     private final UserRepository userRepository;
 
-
     @Override
-    public void registerEntry(Long productId, Integer quantity, LocalDate expirationDate, Long userId, String observation) {
+    public void registerEntry(StockEntryDTO entryDTO) {
+        validateQuantity(entryDTO.getQuantity());
 
-        validateQuantity(quantity);
-
-        Product product = getProductOrThrow(productId);
-        User user = getUserOrThrow(userId);
+        Product product = getProductOrThrow(entryDTO.getProductId());
+        User user = getUserOrThrow(entryDTO.getUserId());
 
         ProductBatch batch = new ProductBatch();
         batch.setProduct(product);
-        batch.setQuantity(quantity);
-        batch.setExpirationDate(expirationDate);
+        batch.setQuantity(entryDTO.getQuantity());
+        batch.setExpirationDate(entryDTO.getExpirationDate());
         batch.setActive(true);
 
         productBatchRepository.save(batch);
 
-        createMovement(batch, quantity, StockMovementType.ENTRY, user, observation);
+        createMovement(batch, entryDTO.getQuantity(), StockMovementType.ENTRY, user, entryDTO.getObservation());
     }
 
-
     @Override
-    public void registerExit(Long productId, Integer quantity, Long userId, String observation, StockMovementType type) {
+    public void registerExit(StockExitDTO exitDTO) {
+        validateQuantity(exitDTO.getQuantity());
+        validateExitType(exitDTO.getType());
 
-        validateQuantity(quantity);
-        validateExitType(type);
+        Product product = getProductOrThrow(exitDTO.getProductId());
+        User user = getUserOrThrow(exitDTO.getUserId());
 
-        Product product = getProductOrThrow(productId);
-        User user = getUserOrThrow(userId);
+        Integer totalStock = productBatchRepository.getTotalStockByProduct(exitDTO.getProductId());
 
-        Integer totalStock = productBatchRepository.getTotalStockByProduct(productId);
-
-        if (totalStock < quantity) {
+        if (totalStock < exitDTO.getQuantity()) {
             throw new BusinessException("Estoque insuficiente");
         }
 
         List<ProductBatch> batches = productBatchRepository.findByActiveTrueOrderByExpirationDate();
 
-        int remaining = quantity;
+        int remaining = exitDTO.getQuantity();
 
         for (ProductBatch batch : batches) {
-
-            if (!batch.getProduct().getId().equals(productId)) continue;
-
+            if (!batch.getProduct().getId().equals(exitDTO.getProductId())) continue;
             if (remaining <= 0) break;
 
             int available = batch.getQuantity();
@@ -83,18 +78,16 @@ public class StockServiceImpl implements StockService {
 
             productBatchRepository.save(batch);
 
-            createMovement(batch, toRemove, type, user, observation);
+            createMovement(batch, toRemove, exitDTO.getType(), user, exitDTO.getObservation());
 
             remaining -= toRemove;
         }
     }
 
-
     @Override
     public List<Product> getLowStockProducts() {
         return productRepository.findBelowMinimumStock();
     }
-
 
     private Product getProductOrThrow(Long id) {
         Product product = productRepository.findById(id)
@@ -131,14 +124,12 @@ public class StockServiceImpl implements StockService {
     }
 
     private void createMovement(ProductBatch batch, Integer quantity, StockMovementType type, User user, String observation) {
-
         StockMovement movement = new StockMovement();
         movement.setBatch(batch);
         movement.setQuantity(quantity);
         movement.setType(type);
         movement.setUser(user);
         movement.setObservation(observation);
-
         stockMovementRepository.save(movement);
     }
 }
