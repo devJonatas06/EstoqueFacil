@@ -1,10 +1,11 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.dto.user.UserRequestDTO;
+import com.example.EstoqueFacil.dto.user.UserResponseDTO;
 
 public interface UserService {
 
-    User create(User user);
+    UserResponseDTO create(UserRequestDTO userRequest);
 
-    User findByEmail(String email);
+    UserResponseDTO findByEmail(String email);
 }
