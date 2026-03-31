@@ -2,6 +2,7 @@
 package com.example.EstoqueFacil.repository;
 
 import com.example.EstoqueFacil.dto.product.ProductSalesDTO;
+import com.example.EstoqueFacil.dto.report.BestSellingProductDTO;
 import com.example.EstoqueFacil.entity.StockMovement;
 import com.example.EstoqueFacil.entity.StockMovementType;
 import org.springframework.data.domain.Page;
@@ -36,19 +37,6 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
             Pageable pageable
     );
 
-
-    @Query("""
-        SELECT 
-            sm.batch.product.id as productId,
-            SUM(sm.quantity) as totalSold
-        FROM StockMovement sm
-        WHERE sm.type = 'SALE'
-        GROUP BY sm.batch.product.id
-        ORDER BY totalSold DESC
-        """)
-    List<ProductSalesDTO> findMostSoldProducts();
-
-
     @Query("""
         SELECT sm FROM StockMovement sm
         JOIN FETCH sm.batch b
@@ -81,4 +69,23 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
     ORDER BY SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) DESC
     """)
     List<Object[]> findProfitByProduct(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("""
+    SELECT 
+        sm.batch.product.id as productId,
+        sm.batch.product.name as productName,
+        sm.batch.product.barcode as barcode,
+        SUM(sm.quantity) as totalSold,
+        SUM(sm.quantity * sm.batch.product.salePrice) as totalRevenue,
+        SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) as profit
+    FROM StockMovement sm
+    WHERE sm.type = 'SALE'
+    GROUP BY sm.batch.product.id, sm.batch.product.name, sm.batch.product.barcode
+    ORDER BY totalSold DESC
+    """)
+    List<Object[]> findBestSellingProducts();
+
+
+
+
 }
