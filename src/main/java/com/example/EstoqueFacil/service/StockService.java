@@ -2,9 +2,9 @@ package com.example.EstoqueFacil.service;
 
 import com.example.EstoqueFacil.dto.stock.StockEntryDTO;
 import com.example.EstoqueFacil.dto.stock.StockExitDTO;
-import com.example.EstoqueFacil.entity.Product;
-
-import java.util.List;
+import com.example.EstoqueFacil.dto.stock.StockMovementResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface StockService {
 
@@ -12,5 +12,9 @@ public interface StockService {
 
     void registerExit(StockExitDTO exitDTO);
 
-    List<Product> getLowStockProducts();
+    Page<StockMovementResponseDTO> getMovements(Pageable pageable);
+
+    Page<StockMovementResponseDTO> getMovementsByProduct(Long productId, Pageable pageable);
+
+    Integer getCurrentStock(Long productId);
 }

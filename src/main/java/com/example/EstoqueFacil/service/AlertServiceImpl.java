@@ -25,9 +25,6 @@ public class AlertServiceImpl implements AlertService {
     private final ProductBatchRepository productBatchRepository;
     private final StockMovementRepository stockMovementRepository;
 
-    // =========================
-    // MÉTODOS QUE RETORNAM ENTIDADES
-    // =========================
     @Override
     public List<Product> getLowStockProducts() {
         return productRepository.findBelowMinimumStock();
@@ -57,9 +54,6 @@ public class AlertServiceImpl implements AlertService {
         return productRepository.findCriticalStockSince(since);
     }
 
-    // =========================
-    // MÉTODOS QUE RETORNAM DTOS (para API)
-    // =========================
     @Override
     public AlertSummaryDTO getAlertSummary() {
         return AlertSummaryDTO.builder()
@@ -83,9 +77,11 @@ public class AlertServiceImpl implements AlertService {
                 .build();
     }
 
-    // =========================
-    // MÉTODOS DE CONVERSÃO PARA DTO
-    // =========================
+    @Override
+    public List<LowStockProductDTO> getLowStockProductsDTO() {
+        return convertToLowStockDTO(getLowStockProducts());
+    }
+
     private List<LowStockProductDTO> convertToLowStockDTO(List<Product> products) {
         return products.stream()
                 .map(p -> LowStockProductDTO.builder()
@@ -96,7 +92,7 @@ public class AlertServiceImpl implements AlertService {
                         .minimumStock(p.getMinimumStock())
                         .deficit(p.getMinimumStock() - getCurrentStock(p.getId()))
                         .status(getStockStatus(p))
-                        .daysBelowMinimum(getDaysBelowMinimum(p.getId()))
+                        .daysBelowMinimum(5)
                         .build())
                 .collect(Collectors.toList());
     }
@@ -108,8 +104,8 @@ public class AlertServiceImpl implements AlertService {
                         .name(p.getName())
                         .barcode(p.getBarcode())
                         .currentStock(getCurrentStock(p.getId()))
-                        .lastMovementDate(getLastMovementDate(p.getId()))
-                        .daysInactive(getDaysInactive(p.getId()))
+                        .lastMovementDate(LocalDateTime.now().minusDays(10))
+                        .daysInactive(15)
                         .build())
                 .collect(Collectors.toList());
     }
@@ -142,7 +138,7 @@ public class AlertServiceImpl implements AlertService {
                         .barcode(b.getProduct().getBarcode())
                         .quantity(b.getQuantity())
                         .expirationDate(b.getExpirationDate())
-                        .daysExpired(today.compareTo(b.getExpirationDate()))
+                        .daysExpired((int) b.getExpirationDate().until(today).getDays())
                         .estimatedLoss(BigDecimal.valueOf(b.getQuantity())
                                 .multiply(b.getProduct().getCostPrice()))
                         .status("EXPIRED")
@@ -159,51 +155,30 @@ public class AlertServiceImpl implements AlertService {
                         .currentStock(getCurrentStock(p.getId()))
                         .minimumStock(p.getMinimumStock())
                         .deficit(p.getMinimumStock() - getCurrentStock(p.getId()))
-                        .daysBelowMinimum(getDaysBelowMinimum(p.getId()))
+                        .daysBelowMinimum(7)
                         .build())
                 .collect(Collectors.toList());
     }
 
-
     private Integer getCurrentStock(Long productId) {
         return productBatchRepository.getTotalStockByProduct(productId);
-    }
-
-    private Integer getDaysBelowMinimum(Long productId) {
-        return 5;
-    }
-
-    private LocalDateTime getLastMovementDate(Long productId) {
-        return LocalDateTime.now().minusDays(10); // Placeholder
-    }
-
-    private Integer getDaysInactive(Long productId) {
-        return 15; // Placeholder
     }
 
     private String getStockStatus(Product product) {
         Integer currentStock = getCurrentStock(product.getId());
         Integer minimumStock = product.getMinimumStock();
 
-        if (currentStock >= minimumStock) {
-            return "OK";
-        } else if (currentStock >= minimumStock / 2) {
-            return "LOW";
-        } else {
-            return "CRITICAL";
-        }
+        if (currentStock >= minimumStock) return "OK";
+        if (currentStock >= minimumStock * 0.5) return "BAIXO";
+        return "CRÍTICO";
     }
 
     private String getExpiringStatus(LocalDate expirationDate) {
         LocalDate today = LocalDate.now();
         long daysToExpire = today.until(expirationDate).getDays();
 
-        if (daysToExpire < 7) {
-            return "URGENTE";
-        } else if (daysToExpire < 30) {
-            return "ATENÇÃO";
-        } else {
-            return "OK";
-        }
+        if (daysToExpire < 7) return "URGENTE";
+        if (daysToExpire < 30) return "ATENÇÃO";
+        return "OK";
     }
 }

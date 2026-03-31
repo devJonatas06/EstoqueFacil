@@ -2,16 +2,20 @@ package com.example.EstoqueFacil.service;
 
 import com.example.EstoqueFacil.dto.stock.StockEntryDTO;
 import com.example.EstoqueFacil.dto.stock.StockExitDTO;
+import com.example.EstoqueFacil.dto.stock.StockMovementResponseDTO;
 import com.example.EstoqueFacil.entity.*;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
+import com.example.EstoqueFacil.mapper.StockMapper;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
 import com.example.EstoqueFacil.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +28,7 @@ public class StockServiceImpl implements StockService {
     private final ProductBatchRepository productBatchRepository;
     private final StockMovementRepository stockMovementRepository;
     private final UserRepository userRepository;
+    private final StockMapper stockMapper;
 
     @Override
     public void registerEntry(StockEntryDTO entryDTO) {
@@ -54,11 +59,10 @@ public class StockServiceImpl implements StockService {
         Integer totalStock = productBatchRepository.getTotalStockByProduct(exitDTO.getProductId());
 
         if (totalStock < exitDTO.getQuantity()) {
-            throw new BusinessException("Estoque insuficiente");
+            throw new BusinessException("Estoque insuficiente. Disponível: " + totalStock);
         }
 
         List<ProductBatch> batches = productBatchRepository.findByActiveTrueOrderByExpirationDate();
-
         int remaining = exitDTO.getQuantity();
 
         for (ProductBatch batch : batches) {
@@ -69,7 +73,6 @@ public class StockServiceImpl implements StockService {
             if (available <= 0) continue;
 
             int toRemove = Math.min(available, remaining);
-
             batch.setQuantity(available - toRemove);
 
             if (batch.getQuantity() == 0) {
@@ -77,37 +80,43 @@ public class StockServiceImpl implements StockService {
             }
 
             productBatchRepository.save(batch);
-
             createMovement(batch, toRemove, exitDTO.getType(), user, exitDTO.getObservation());
-
             remaining -= toRemove;
         }
     }
 
     @Override
-    public List<Product> getLowStockProducts() {
-        return productRepository.findBelowMinimumStock();
+    public Page<StockMovementResponseDTO> getMovements(Pageable pageable) {
+        return stockMovementRepository.findAll(pageable)
+                .map(stockMapper::toResponseDTO);
+    }
+
+    @Override
+    public Page<StockMovementResponseDTO> getMovementsByProduct(Long productId, Pageable pageable) {
+        return stockMovementRepository.findByBatchProductId(productId, pageable)
+                .map(stockMapper::toResponseDTO);
+    }
+
+    @Override
+    public Integer getCurrentStock(Long productId) {
+        return productBatchRepository.getTotalStockByProduct(productId);
     }
 
     private Product getProductOrThrow(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com ID: " + id));
         if (!product.isActive()) {
-            throw new BusinessException("Produto inativo");
+            throw new BusinessException("Produto inativo: " + product.getName());
         }
-
         return product;
     }
 
     private User getUserOrThrow(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + id));
         if (!user.isActive()) {
-            throw new BusinessException("Usuário inativo");
+            throw new BusinessException("Usuário inativo: " + user.getEmail());
         }
-
         return user;
     }
 
@@ -119,7 +128,7 @@ public class StockServiceImpl implements StockService {
 
     private void validateExitType(StockMovementType type) {
         if (type != StockMovementType.SALE && type != StockMovementType.LOSS) {
-            throw new BusinessException("Tipo inválido para saída");
+            throw new BusinessException("Tipo inválido para saída. Use SALE ou LOSS");
         }
     }
 
