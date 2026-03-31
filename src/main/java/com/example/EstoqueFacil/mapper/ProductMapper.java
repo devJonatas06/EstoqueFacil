@@ -1,5 +1,6 @@
 package com.example.EstoqueFacil.mapper;
 
+import com.example.EstoqueFacil.dto.product.ProductRequestDTO;
 import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
 import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
 import com.example.EstoqueFacil.entity.Product;
@@ -15,9 +16,21 @@ public class ProductMapper {
 
     private final ProductBatchRepository productBatchRepository;
 
+    public Product toEntity(ProductRequestDTO dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setBarcode(dto.getBarcode());
+        product.setDescription(dto.getDescription());
+        product.setMaker(dto.getMaker());
+        product.setCostPrice(dto.getCostPrice());
+        product.setSalePrice(dto.getSalePrice());
+        product.setMinimumStock(dto.getMinimumStock());
+        return product;
+    }
+
     public ProductResponseDTO toResponseDTO(Product product) {
         Integer currentStock = productBatchRepository.getTotalStockByProduct(product.getId());
-        
+
         return ProductResponseDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -38,20 +51,6 @@ public class ProductMapper {
                 .build();
     }
 
-    public Product toEntity(ProductResponseDTO dto) {
-        Product product = new Product();
-        product.setId(dto.getId());
-        product.setName(dto.getName());
-        product.setBarcode(dto.getBarcode());
-        product.setDescription(dto.getDescription());
-        product.setMaker(dto.getMaker());
-        product.setCostPrice(dto.getCostPrice());
-        product.setSalePrice(dto.getSalePrice());
-        product.setMinimumStock(dto.getMinimumStock());
-        product.setActive(dto.getActive());
-        return product;
-    }
-
     public void updateEntity(Product product, ProductUpdateDTO dto) {
         if (dto.getName() != null) product.setName(dto.getName());
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
@@ -62,15 +61,9 @@ public class ProductMapper {
     }
 
     private String calculateStockStatus(Integer currentStock, Integer minimumStock) {
-        if (currentStock == null || minimumStock == null) {
-            return "INDISPONÍVEL";
-        }
-        if (currentStock >= minimumStock) {
-            return "OK";
-        } else if (currentStock >= minimumStock * 0.5) {
-            return "BAIXO";
-        } else {
-            return "CRÍTICO";
-        }
+        if (currentStock == null || minimumStock == null) return "INDISPONÍVEL";
+        if (currentStock >= minimumStock) return "OK";
+        if (currentStock >= minimumStock * 0.5) return "BAIXO";
+        return "CRÍTICO";
     }
 }

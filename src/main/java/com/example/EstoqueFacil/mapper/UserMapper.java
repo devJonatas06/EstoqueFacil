@@ -15,20 +15,24 @@ public class UserMapper {
         User user = new User();
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword()); // Será criptografada depois no service
+        user.setPassword(dto.getPassword());
         return user;
     }
 
     public UserResponseDTO toResponseDTO(User user) {
-        return UserResponseDTO.builder()
+        UserResponseDTO.UserResponseDTOBuilder builder = UserResponseDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .active(user.isActive())
-                .roles(user.getRoles() != null ? 
-                       user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()) : 
-                       null)
-                .createdAt(user.getCreatedAt())
-                .build();
+                .createdAt(user.getCreatedAt());
+
+        if (user.getRoles() != null) {
+            builder.roles(user.getRoles().stream()
+                    .map(Role::getName)
+                    .collect(Collectors.toSet()));
+        }
+
+        return builder.build();
     }
 }
