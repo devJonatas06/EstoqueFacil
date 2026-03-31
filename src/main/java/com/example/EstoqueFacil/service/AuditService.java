@@ -1,56 +1,20 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.entity.AuditLog;
-import com.example.EstoqueFacil.repository.AuditLogRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.EstoqueFacil.dto.report.AuditLogResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
-@Transactional
-public class AuditService {
+public interface AuditService {
 
-    private final AuditLogRepository auditLogRepository;
-    private final ObjectMapper objectMapper;
+    void log(String action, String entityType, Long entityId, Long userId, String userEmail, Object oldValue, Object newValue);
 
-    public void log(String action, String entityType, Long entityId, Long userId, String userEmail, Object oldValue, Object newValue) {
-        try {
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction(action);
-            auditLog.setEntityType(entityType);
-            auditLog.setEntityId(entityId);
-            auditLog.setUserId(userId);
-            auditLog.setUserEmail(userEmail);
+    void logSimple(String action, String entityType, Long entityId, Long userId, String userEmail, String details);
 
-            if (oldValue != null) {
-                auditLog.setOldValue(objectMapper.writeValueAsString(oldValue));
-            }
-            if (newValue != null) {
-                auditLog.setNewValue(objectMapper.writeValueAsString(newValue));
-            }
+    Page<AuditLogResponseDTO> findAll(Pageable pageable);
 
-            auditLogRepository.save(auditLog);
-        } catch (Exception e) {
-            log.error("Erro ao salvar auditoria: {}", e.getMessage());
-        }
-    }
+    Page<AuditLogResponseDTO> findByEntity(String entityType, Long entityId, Pageable pageable);
 
-    public void logSimple(String action, String entityType, Long entityId, Long userId, String userEmail, String details) {
-        try {
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction(action);
-            auditLog.setEntityType(entityType);
-            auditLog.setEntityId(entityId);
-            auditLog.setUserId(userId);
-            auditLog.setUserEmail(userEmail);
-            auditLog.setDetails(details);
-            auditLogRepository.save(auditLog);
-        } catch (Exception e) {
-            log.error("Erro ao salvar auditoria: {}", e.getMessage());
-        }
-    }
+    Page<AuditLogResponseDTO> findByUser(Long userId, Pageable pageable);
+
+    Page<AuditLogResponseDTO> findByAction(String action, Pageable pageable);
 }
