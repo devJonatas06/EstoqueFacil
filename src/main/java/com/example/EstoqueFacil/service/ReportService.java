@@ -23,4 +23,10 @@ public interface ReportService {
 
     // Histórico por período
     List<StockMovementReportDTO> getMovementsByPeriod(LocalDateTime start, LocalDateTime end);
+
+    FinancialReportDTO getFinancialReport(LocalDateTime start, LocalDateTime end);
+    StockIntelligenceReportDTO getStockIntelligenceReport();
+    LossReportDTO getLossReport();
+    PerformanceReportDTO getPerformanceReport();
+
 }

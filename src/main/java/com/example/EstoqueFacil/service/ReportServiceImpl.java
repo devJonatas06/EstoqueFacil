@@ -204,4 +204,211 @@ public class ReportServiceImpl implements ReportService {
         if (daysToExpire < 30) return "ATENÇÃO";
         return "OK";
     }
+
+
+    @Override
+    public FinancialReportDTO getFinancialReport(LocalDateTime start, LocalDateTime end) {
+        ProfitReportDTO profit = getDetailedProfitReport(start, end);
+
+        return FinancialReportDTO.builder()
+                .totalProfit(profit.getTotalProfit())
+                .profitByProduct(profit.getProfitByProduct())
+                .topProfitProduct(profit.getTopProfitProduct())
+                .start(start)
+                .end(end)
+                .totalItemsSold(profit.getTotalItemsSold())
+                .averageTicket(profit.getAverageTicket())
+                .build();
+    }
+
+    @Override
+    public StockIntelligenceReportDTO getStockIntelligenceReport() {
+        // Produtos críticos
+        List<CriticalStockProductDTO> critical = getCriticalStockProducts();
+
+        // Previsão de ruptura
+        List<StockIntelligenceReportDTO.StockBreakdownPredictionDTO> predictions =
+                calculateBreakdownPredictions();
+
+        // Dias abaixo do mínimo
+        List<StockIntelligenceReportDTO.DaysBelowMinimumDTO> daysBelow =
+                getDaysBelowMinimum();
+
+        return StockIntelligenceReportDTO.builder()
+                .criticalProducts(critical)
+                .breakdownPredictions(predictions)
+                .daysBelowMinimum(daysBelow)
+                .build();
+    }
+
+    private List<CriticalStockProductDTO> getCriticalStockProducts() {
+        List<Product> products = productRepository.findBelowMinimumStock();
+        return products.stream()
+                .map(p -> CriticalStockProductDTO.builder()
+                        .productId(p.getId())
+                        .name(p.getName())
+                        .barcode(p.getBarcode())
+                        .currentStock(getCurrentStock(p.getId()))
+                        .minimumStock(p.getMinimumStock())
+                        .deficit(p.getMinimumStock() - getCurrentStock(p.getId()))
+                        .daysBelowMinimum(calculateDaysBelowMinimum(p.getId()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private List<StockIntelligenceReportDTO.StockBreakdownPredictionDTO> calculateBreakdownPredictions() {
+        List<Product> products = productRepository.findAll();
+        List<StockIntelligenceReportDTO.StockBreakdownPredictionDTO> predictions = new ArrayList<>();
+
+        for (Product p : products) {
+            Integer currentStock = getCurrentStock(p.getId());
+            Integer dailySales = getDailyAverageSales(p.getId());
+
+            if (dailySales > 0 && currentStock < p.getMinimumStock()) {
+                int daysToBreakdown = currentStock / dailySales;
+                String riskLevel = daysToBreakdown < 7 ? "ALTO" : (daysToBreakdown < 30 ? "MÉDIO" : "BAIXO");
+
+                predictions.add(StockIntelligenceReportDTO.StockBreakdownPredictionDTO.builder()
+                        .productId(p.getId())
+                        .productName(p.getName())
+                        .currentStock(currentStock)
+                        .estimatedDailySales(dailySales)
+                        .estimatedDaysToBreakdown(daysToBreakdown)
+                        .riskLevel(riskLevel)
+                        .build());
+            }
+        }
+        return predictions;
+    }
+
+    private List<StockIntelligenceReportDTO.DaysBelowMinimumDTO> getDaysBelowMinimum() {
+        List<Product> products = productRepository.findBelowMinimumStock();
+        return products.stream()
+                .map(p -> StockIntelligenceReportDTO.DaysBelowMinimumDTO.builder()
+                        .productId(p.getId())
+                        .productName(p.getName())
+                        .currentStock(getCurrentStock(p.getId()))
+                        .minimumStock(p.getMinimumStock())
+                        .daysBelowMinimum(calculateDaysBelowMinimum(p.getId()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private Integer getDailyAverageSales(Long productId) {
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        List<StockMovement> sales = stockMovementRepository
+                .findByProductAndPeriod(productId, thirtyDaysAgo, LocalDateTime.now());
+
+        int totalSold = sales.stream()
+                .filter(m -> m.getType() == StockMovementType.SALE)
+                .mapToInt(StockMovement::getQuantity)
+                .sum();
+
+        return totalSold / 30;
+    }
+
+    private Integer calculateDaysBelowMinimum(Long productId) {
+        // Implementação simplificada - pode ser mais complexa
+        return 5; // Placeholder
+    }
+
+
+    @Override
+    public LossReportDTO getLossReport() {
+        List<ProductBatch> expiredBatches = productBatchRepository.findExpiredBatches(LocalDate.now());
+
+        BigDecimal totalLoss = expiredBatches.stream()
+                .map(b -> BigDecimal.valueOf(b.getQuantity())
+                        .multiply(b.getProduct().getCostPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int totalUnits = expiredBatches.stream()
+                .mapToInt(ProductBatch::getQuantity)
+                .sum();
+
+        List<ExpiredBatchDTO> expiredDTOs = expiredBatches.stream()
+                .map(b -> ExpiredBatchDTO.builder()
+                        .batchId(b.getId())
+                        .productId(b.getProduct().getId())
+                        .productName(b.getProduct().getName())
+                        .barcode(b.getProduct().getBarcode())
+                        .quantity(b.getQuantity())
+                        .expirationDate(b.getExpirationDate())
+                        .daysExpired((int) b.getExpirationDate().until(LocalDate.now()).getDays())
+                        .estimatedLoss(BigDecimal.valueOf(b.getQuantity())
+                                .multiply(b.getProduct().getCostPrice()))
+                        .status("EXPIRED")
+                        .build())
+                .collect(Collectors.toList());
+
+        return LossReportDTO.builder()
+                .expiredProducts(expiredDTOs)
+                .totalEstimatedLoss(totalLoss)
+                .totalExpiredUnits(totalUnits)
+                .build();
+    }
+
+
+    @Override
+    public PerformanceReportDTO getPerformanceReport() {
+        // Produtos encalhados (sem venda há 60 dias)
+        List<InactiveProductDTO> stagnant = getInactiveProducts(60);
+
+        // Produtos com alta saída
+        List<BestSellingProductDTO> highTurnover = getBestSellingProducts();
+        if (highTurnover.size() > 10) {
+            highTurnover = highTurnover.subList(0, 10);
+        }
+
+        // Giro de estoque
+        List<PerformanceReportDTO.ProductTurnoverDTO> turnover = calculateTurnoverRate();
+
+        return PerformanceReportDTO.builder()
+                .stagnantProducts(stagnant)
+                .highTurnoverProducts(highTurnover)
+                .turnoverRate(turnover)
+                .build();
+    }
+
+    private List<PerformanceReportDTO.ProductTurnoverDTO> calculateTurnoverRate() {
+        List<Product> products = productRepository.findAll();
+        List<PerformanceReportDTO.ProductTurnoverDTO> result = new ArrayList<>();
+
+        for (Product p : products) {
+            Integer totalSold = getTotalSoldLastYear(p.getId());
+            Integer averageStock = getAverageStock(p.getId());
+
+            double turnoverRate = averageStock > 0 ?
+                    (double) totalSold / averageStock : 0;
+
+            result.add(PerformanceReportDTO.ProductTurnoverDTO.builder()
+                    .productId(p.getId())
+                    .productName(p.getName())
+                    .totalSold(totalSold)
+                    .averageStock(averageStock)
+                    .turnoverRate(Math.round(turnoverRate * 100) / 100.0)
+                    .build());
+        }
+
+        return result.stream()
+                .sorted((a, b) -> Double.compare(b.getTurnoverRate(), a.getTurnoverRate()))
+                .limit(20)
+                .collect(Collectors.toList());
+    }
+
+    private Integer getTotalSoldLastYear(Long productId) {
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
+        List<StockMovement> sales = stockMovementRepository
+                .findByProductAndPeriod(productId, oneYearAgo, LocalDateTime.now());
+
+        return sales.stream()
+                .filter(m -> m.getType() == StockMovementType.SALE)
+                .mapToInt(StockMovement::getQuantity)
+                .sum();
+    }
+
+    private Integer getAverageStock(Long productId) {
+        return getCurrentStock(productId);
+    }
+
 }
