@@ -15,8 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.EstoqueFacil.service.PdfReportService;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -30,10 +31,8 @@ public class ReportController {
 
     private final AlertService alertService;
     private final ReportService reportService;
+    private final PdfReportService pdfReportService;
 
-    // =========================
-    // ALERTAS
-    // =========================
 
     @GetMapping("/alerts/summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -307,5 +306,32 @@ public class ReportController {
         log.info("Resumo do período: ENTRADAS={}, VENDAS={}, PERDAS={}", entries, sales, losses);
 
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/export/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @Operation(summary = "Exportar todos os relatórios em PDF")
+    public ResponseEntity<byte[]> exportAllReportsToPdf() {
+        log.info("Requisição recebida: exportação de relatórios em PDF");
+
+        long startTime = System.currentTimeMillis();
+
+        try {
+            byte[] pdfBytes = pdfReportService.generateCompleteReport();
+            long duration = System.currentTimeMillis() - startTime;
+
+            log.info("PDF gerado com sucesso em {}ms. Tamanho: {} bytes", duration, pdfBytes.length);
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "attachment; filename=relatorio_completo_" +
+                            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf")
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar PDF: {}", e.getMessage(), e);
+            throw new BusinessException("Erro ao gerar relatório PDF: " + e.getMessage());
+        }
     }
 }
