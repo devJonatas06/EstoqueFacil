@@ -1,10 +1,34 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# ==============================
+# ARQUIVOS DE SEGURANÇA (NUNCA COMMITAR!)
+# ==============================
+SENHA.env
+.env
+.env.*
+!.env.example
+*.key
+*.p12
+*.jks
+*.pem
+*.crt
+*.cer
+secrets/
+credentials/
 
-### STS ###
+# ==============================
+# IDE E EDITORES
+# ==============================
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+*.swp
+*.swo
+*~
+
+### Eclipse / STS ###
 .apt_generated
 .classpath
 .factorypath
@@ -12,12 +36,13 @@ target/
 .settings
 .springBeans
 .sts4-cache
+bin/
+.mvn/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+### VS Code ###
+.vscode/
+*.code-workspace
+.history/
 
 ### NetBeans ###
 /nbproject/private/
@@ -26,8 +51,95 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# ==============================
+# BUILD E DEPENDÊNCIAS
+# ==============================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# ==============================
+# LOGS E TEMPORÁRIOS
+# ==============================
+*.log
+*.log.gz
+*.tmp
+*.temp
+*.cache
+*.dump
+*.hprof
+*.pid
+
+# ==============================
+# BANCOS DE DADOS
+# ==============================
+*.db
+*.sqlite
+*.h2.db
+*.mv.db
+*.trace.db
+*.lock
+
+# ==============================
+# DOCKER
+# ==============================
+docker-compose.override.yml
+.dockerignore
+*.tar.gz
+*.tar
+
+# ==============================
+# SISTEMA OPERACIONAL
+# ==============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.cab
+*.msi
+*.msm
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ==============================
+# BACKUPS
+# ==============================
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# ==============================
+# SPRING BOOT ESPECÍFICO
+# ==============================
+spring-boot-devtools.properties
+spring-boot-devtools.yml
+application-dev.properties
+application-prod.properties
+application-secret.properties
+
+# ==============================
+# MAVEN WRAPPER (mantém o necessário)
+# ==============================
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# ==============================
+# HELPER FILES
+# ==============================
+HELP.md
+*.md.backup
