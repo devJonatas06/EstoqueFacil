@@ -33,13 +33,13 @@ import java.math.BigDecimal;
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 @Tag(name = "Produtos", description = "Endpoints para gerenciamento de produtos")
-@SecurityRequirement(name = "bearer-auth")
+//@SecurityRequirement(name = "bearer-auth")
 public class ProductController {
 
     private final ProductService productService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Criar novo produto", description = "Apenas ADMIN pode criar produtos")
     public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductRequestDTO requestDTO) {
         log.info("ADMIN criando novo produto - Nome: {}, Código de barras: {}, Preço venda: {}",
@@ -55,7 +55,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Atualizar produto")
     public ResponseEntity<ProductResponseDTO> update(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id,
@@ -73,7 +73,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Buscar produto por ID")
     public ResponseEntity<ProductResponseDTO> findById(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id) {
@@ -97,7 +97,7 @@ public class ProductController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Listar todos os produtos (paginado)")
     public ResponseEntity<PageableResponse<ProductResponseDTO>> findAll(
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -138,7 +138,7 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Buscar produtos por nome")
     public ResponseEntity<Page<ProductResponseDTO>> searchByName(
             @RequestParam @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres") String name,
@@ -156,7 +156,7 @@ public class ProductController {
     }
 
     @GetMapping("/category/{categoryId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Listar produtos por categoria")
     public ResponseEntity<Page<ProductResponseDTO>> findByCategory(
             @PathVariable @Min(value = 1, message = "ID da categoria deve ser maior que 0") Long categoryId,
@@ -174,7 +174,7 @@ public class ProductController {
     }
 
     @GetMapping("/barcode/{barcode}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Buscar produto por código de barras")
     public ResponseEntity<ProductResponseDTO> findByBarcode(
             @PathVariable @NotBlank(message = "Código de barras não pode ser vazio")
@@ -193,7 +193,7 @@ public class ProductController {
     }
 
     @GetMapping("/filter")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Buscar produtos com filtros avançados")
     public ResponseEntity<PageableResponse<ProductResponseDTO>> filterProducts(
             @RequestParam(required = false) @Size(min = 2, max = 100) String name,
@@ -260,7 +260,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar produto (soft delete)")
     public ResponseEntity<Void> deactivate(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id) {

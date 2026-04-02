@@ -23,13 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/audit")
 @RequiredArgsConstructor
 @Tag(name = "Auditoria", description = "Endpoints para consulta de logs de auditoria")
-@SecurityRequirement(name = "bearer-auth")
+//@SecurityRequirement(name = "bearer-auth")
 public class AuditController {
 
     private final AuditService auditService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findAll(
             @PageableDefault(size = 50) Pageable pageable) {
 
@@ -38,7 +38,7 @@ public class AuditController {
     }
 
     @GetMapping("/entity/{entityType}/{entityId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findByEntity(
             @PathVariable @NotBlank String entityType,
             @PathVariable @Min(1) Long entityId,
@@ -49,7 +49,7 @@ public class AuditController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findByUser(
             @PathVariable @Min(1) Long userId,
             @PageableDefault(size = 50) Pageable pageable) {
@@ -59,7 +59,7 @@ public class AuditController {
     }
 
     @GetMapping("/action/{action}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findByAction(
             @PathVariable @NotBlank String action,
             @PageableDefault(size = 50) Pageable pageable) {

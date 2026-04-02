@@ -28,13 +28,13 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Tag(name = "Usuários", description = "Endpoints para gerenciamento de usuários")
-@SecurityRequirement(name = "bearer-auth")
+//@SecurityRequirement(name = "bearer-auth")
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Criar novo usuário (funcionário)", description = "Apenas ADMIN pode criar usuários")
     public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserRequestDTO requestDTO) {
         log.info("ADMIN criando novo usuário - Email: {}, Nome: {}", requestDTO.getEmail(), requestDTO.getName());
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Buscar usuário por ID")
     public ResponseEntity<UserResponseDTO> findById(
             @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
@@ -68,7 +68,7 @@ public class UserController {
     }
 
     @GetMapping("/email/{email}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Buscar usuário por email")
     public ResponseEntity<UserResponseDTO> findByEmail(
             @PathVariable @Email(message = "Email inválido") @NotBlank(message = "Email não pode ser vazio") String email) {
@@ -85,7 +85,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos os usuários")
     public ResponseEntity<List<UserResponseDTO>> findAll() {
         log.info("Listando todos os usuários");
@@ -106,7 +106,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar usuário")
     public ResponseEntity<Void> deactivate(
             @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
@@ -123,7 +123,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/role")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Alterar role do usuário (ADMIN/EMPLOYEE)")
     public ResponseEntity<UserResponseDTO> changeRole(
             @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id,

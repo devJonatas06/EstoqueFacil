@@ -28,13 +28,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/stock")
 @RequiredArgsConstructor
 @Tag(name = "Estoque", description = "Endpoints para movimentação de estoque")
-@SecurityRequirement(name = "bearer-auth")
+//@SecurityRequirement(name = "bearer-auth")
 public class StockController {
 
     private final StockService stockService;
 
     @PostMapping("/entry")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Registrar entrada de produtos (compra)")
     public ResponseEntity<Void> registerEntry(@Valid @RequestBody StockEntryDTO entryDTO) {
         log.info("Registrando ENTRADA de estoque - Produto ID: {}, Quantidade: {}, Usuário ID: {}",
@@ -53,7 +53,7 @@ public class StockController {
     }
 
     @PostMapping("/exit")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Registrar saída de produtos (venda ou perda)")
     public ResponseEntity<Void> registerExit(@Valid @RequestBody StockExitDTO exitDTO) {
         log.info("Registrando SAÍDA de estoque - Produto ID: {}, Quantidade: {}, Tipo: {}, Usuário ID: {}",
@@ -73,7 +73,7 @@ public class StockController {
     }
 
     @GetMapping("/movements")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Listar histórico de movimentações")
     public ResponseEntity<Page<StockMovementResponseDTO>> getMovements(
             @PageableDefault(size = 50, sort = "movementDate", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -92,7 +92,7 @@ public class StockController {
     }
 
     @GetMapping("/movements/product/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Listar movimentações de um produto específico")
     public ResponseEntity<Page<StockMovementResponseDTO>> getMovementsByProduct(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long productId,
@@ -114,7 +114,7 @@ public class StockController {
     }
 
     @GetMapping("/current/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Consultar estoque atual de um produto")
     public ResponseEntity<Integer> getCurrentStock(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long productId) {

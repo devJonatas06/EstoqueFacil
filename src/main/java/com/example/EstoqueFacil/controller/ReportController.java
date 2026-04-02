@@ -26,7 +26,7 @@ import java.util.List;
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @Tag(name = "Relatórios", description = "Endpoints para relatórios e alertas")
-@SecurityRequirement(name = "bearer-auth")
+//@SecurityRequirement(name = "bearer-auth")
 public class ReportController {
 
     private final AlertService alertService;
@@ -35,7 +35,7 @@ public class ReportController {
 
 
     @GetMapping("/alerts/summary")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Resumo de alertas (apenas contadores)")
     public ResponseEntity<AlertSummaryDTO> getAlertSummary() {
         log.info("Requisição recebida: resumo de alertas");
@@ -56,7 +56,7 @@ public class ReportController {
     }
 
     @GetMapping("/alerts/details")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Detalhes completos dos alertas")
     public ResponseEntity<AlertDetailDTO> getAlertDetails() {
         log.info("Requisição recebida: detalhes completos dos alertas");
@@ -81,7 +81,7 @@ public class ReportController {
     // =========================
 
     @GetMapping("/best-sellers")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Produtos mais vendidos")
     public ResponseEntity<List<BestSellingProductDTO>> getBestSellers() {
         log.info("Requisição recebida: produtos mais vendidos");
@@ -101,7 +101,7 @@ public class ReportController {
     }
 
     @GetMapping("/worst-sellers")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Produtos menos vendidos (menor giro)")
     public ResponseEntity<List<BestSellingProductDTO>> getWorstSellers() {
         log.info("Requisição recebida: produtos menos vendidos");
@@ -120,7 +120,7 @@ public class ReportController {
     // =========================
 
     @GetMapping("/profit")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Lucro estimado por período")
     public ResponseEntity<ProfitReportDTO> getProfitReport(
             @RequestParam
@@ -180,7 +180,7 @@ public class ReportController {
     // =========================
 
     @GetMapping("/inactive")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Produtos parados há X dias")
     public ResponseEntity<List<InactiveProductDTO>> getInactiveProducts(
             @RequestParam(defaultValue = "30")
@@ -204,7 +204,7 @@ public class ReportController {
     // =========================
 
     @GetMapping("/low-stock")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Produtos com estoque abaixo do mínimo")
     public ResponseEntity<List<LowStockProductDTO>> getLowStockProducts() {
         log.info("Requisição recebida: produtos com estoque baixo");
@@ -232,7 +232,7 @@ public class ReportController {
     // =========================
 
     @GetMapping("/expiring")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Lotes próximos ao vencimento")
     public ResponseEntity<List<ExpiringBatchDTO>> getExpiringBatches(
             @RequestParam(defaultValue = "30")
@@ -265,7 +265,7 @@ public class ReportController {
     // =========================
 
     @GetMapping("/movements")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Histórico de movimentações por período")
     public ResponseEntity<List<StockMovementReportDTO>> getMovementsByPeriod(
             @RequestParam
@@ -310,7 +310,7 @@ public class ReportController {
 
 
     @GetMapping("/export/pdf")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Exportar todos os relatórios em PDF")
     public ResponseEntity<byte[]> exportAllReportsToPdf() {
         log.info("Requisição recebida: exportação de relatórios em PDF");

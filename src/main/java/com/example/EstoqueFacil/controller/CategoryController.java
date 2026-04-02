@@ -25,13 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 @Tag(name = "Categorias", description = "Endpoints para gerenciamento de categorias")
-@SecurityRequirement(name = "bearer-auth")
+//@SecurityRequirement(name = "bearer-auth")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponseDTO> create(
             @Valid @RequestBody CategoryRequestDTO requestDTO) {
 
@@ -41,7 +41,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponseDTO> update(
             @PathVariable @Min(1) Long id,
             @Valid @RequestBody CategoryRequestDTO requestDTO) {
@@ -51,7 +51,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
     public ResponseEntity<CategoryResponseDTO> findById(
             @PathVariable @Min(1) Long id) {
 
@@ -60,7 +60,7 @@ public class CategoryController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    //@PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
     public ResponseEntity<List<CategoryResponseDTO>> findAllActive() {
 
         log.info("Listando categorias ativas");
@@ -68,7 +68,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivate(
             @PathVariable @Min(1) Long id) {
 
