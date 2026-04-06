@@ -20,25 +20,22 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
 @Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // ✅ 404 - Recurso não encontrado
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(ResourceNotFoundException ex) {
         log.warn("Recurso não encontrado: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, "Recurso não encontrado", ex.getMessage());
     }
 
-    // ✅ 400 - Regra de negócio violada
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponseDTO> handleBusinessException(BusinessException ex) {
         log.warn("Regra de negócio violada: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Erro de negócio", ex.getMessage());
     }
 
-    // ✅ 400 - Validação de campos (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -51,7 +48,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    // ✅ 400 - Parâmetro de query/path inválido
     @ExceptionHandler({
             ConstraintViolationException.class,
             MethodArgumentTypeMismatchException.class,
@@ -63,17 +59,15 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Requisição inválida", ex.getMessage());
     }
 
-    // ✅ 403 - Acesso negado
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDTO> handleAccessDenied(AccessDeniedException ex) {
         log.warn("Acesso negado: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.FORBIDDEN, "Acesso negado", "Você não tem permissão para acessar este recurso");
     }
 
-    // ✅ 500 - Erro interno (não expor detalhes em produção)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex) {
-        log.error("Erro interno no servidor", ex);
+        log.error("Erro interno no servidor - Tipo: {}, Mensagem: {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Erro interno no servidor",
