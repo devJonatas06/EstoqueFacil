@@ -13,11 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
 import org.springframework.validation.annotation.Validated;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 @Slf4j
 @Validated
@@ -25,55 +24,52 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 @Tag(name = "Categorias", description = "Endpoints para gerenciamento de categorias")
-//@SecurityRequirement(name = "bearer-auth")
+@SecurityRequirement(name = "bearer-auth")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @PostMapping
-    //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponseDTO> create(
-            @Valid @RequestBody CategoryRequestDTO requestDTO) {
-
-        log.info("Criando categoria: {}", requestDTO.getName());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(categoryService.create(requestDTO));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoryResponseDTO> create(@Valid @RequestBody CategoryRequestDTO requestDTO) {
+        log.info("Categoria - Criando: {}", requestDTO.getName());
+        CategoryResponseDTO response = categoryService.create(requestDTO);
+        log.info("Categoria - Criada com sucesso. ID: {}", response.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponseDTO> update(
             @PathVariable @Min(1) Long id,
             @Valid @RequestBody CategoryRequestDTO requestDTO) {
 
-        log.info("Atualizando categoria ID: {}", id);
-        return ResponseEntity.ok(categoryService.update(id, requestDTO));
+        log.info("Categoria - Atualizando ID: {}", id);
+        CategoryResponseDTO response = categoryService.update(id, requestDTO);
+        log.info("Categoria - Atualizada com sucesso. ID: {}", id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    //@PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
-    public ResponseEntity<CategoryResponseDTO> findById(
-            @PathVariable @Min(1) Long id) {
-
-        log.info("Buscando categoria ID: {}", id);
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    public ResponseEntity<CategoryResponseDTO> findById(@PathVariable @Min(1) Long id) {
+        log.info("Categoria - Busca por ID: {}", id);
         return ResponseEntity.ok(categoryService.findById(id));
     }
 
     @GetMapping
-    //@PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE')")
     public ResponseEntity<List<CategoryResponseDTO>> findAllActive() {
-
-        log.info("Listando categorias ativas");
+        log.info("Categoria - Listando todas ativas");
         return ResponseEntity.ok(categoryService.findAllActive());
     }
 
     @DeleteMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deactivate(
-            @PathVariable @Min(1) Long id) {
-
-        log.warn("Desativando categoria ID: {}", id);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deactivate(@PathVariable @Min(1) Long id) {
+        log.warn("Categoria - Desativando ID: {}", id);
         categoryService.deactivate(id);
+        log.info("Categoria - Desativada com sucesso. ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

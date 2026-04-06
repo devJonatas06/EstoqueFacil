@@ -23,48 +23,49 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/audit")
 @RequiredArgsConstructor
 @Tag(name = "Auditoria", description = "Endpoints para consulta de logs de auditoria")
-//@SecurityRequirement(name = "bearer-auth")
+@SecurityRequirement(name = "bearer-auth")
 public class AuditController {
 
     private final AuditService auditService;
 
     @GetMapping
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findAll(
             @PageableDefault(size = 50) Pageable pageable) {
 
-        log.info("Listando todos os logs de auditoria");
-        return ResponseEntity.ok(auditService.findAll(pageable));
+        Page<AuditLogResponseDTO> result = auditService.findAll(pageable);
+        log.info("Auditoria - Listagem realizada. Total de registros: {}", result.getTotalElements());
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/entity/{entityType}/{entityId}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findByEntity(
             @PathVariable @NotBlank String entityType,
             @PathVariable @Min(1) Long entityId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        log.info("Buscando logs por entidade: {} - ID: {}", entityType, entityId);
+        log.info("Auditoria - Busca por entidade. Tipo: {}, ID: {}", entityType, entityId);
         return ResponseEntity.ok(auditService.findByEntity(entityType, entityId, pageable));
     }
 
     @GetMapping("/user/{userId}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findByUser(
             @PathVariable @Min(1) Long userId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        log.info("Buscando logs do usuário ID: {}", userId);
+        log.info("Auditoria - Busca por usuário. ID: {}", userId);
         return ResponseEntity.ok(auditService.findByUser(userId, pageable));
     }
 
     @GetMapping("/action/{action}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditLogResponseDTO>> findByAction(
             @PathVariable @NotBlank String action,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        log.info("Buscando logs por ação: {}", action);
+        log.info("Auditoria - Busca por ação: {}", action);
         return ResponseEntity.ok(auditService.findByAction(action, pageable));
     }
 }

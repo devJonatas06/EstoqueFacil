@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -96,5 +98,18 @@ public class AuditServiceImpl implements AuditService {
                 .details(log.getDetails())
                 .timestamp(log.getTimestamp())
                 .build();
+    }
+    public void recordAction(String email, String action) {
+        try {
+            AuditLog log = new AuditLog();
+            log.setUserEmail(email);
+            log.setAction(action);
+            log.setEntityType("AUTH"); // ✅ CAMPO OBRIGATÓRIO
+            log.setTimestamp(LocalDateTime.now());
+            auditLogRepository.save(log);
+            log.debug("Auditoria salva: {} - {}", action, email);
+        } catch (Exception e) {
+            log.error("Erro ao salvar auditoria: {}", e.getMessage());
+        }
     }
 }

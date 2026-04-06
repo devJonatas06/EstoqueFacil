@@ -39,4 +39,7 @@ public class AuditLog {
 
     @CreationTimestamp
     private LocalDateTime timestamp;
+
+    public void debug(String s, String action, String email) {
+    }
 }

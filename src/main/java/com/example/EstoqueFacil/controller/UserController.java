@@ -2,7 +2,6 @@ package com.example.EstoqueFacil.controller;
 
 import com.example.EstoqueFacil.dto.user.UserRequestDTO;
 import com.example.EstoqueFacil.dto.user.UserResponseDTO;
-import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,116 +27,103 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Tag(name = "Usuários", description = "Endpoints para gerenciamento de usuários")
-//@SecurityRequirement(name = "bearer-auth")
+@SecurityRequirement(name = "bearer-auth")
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Criar novo usuário (funcionário)", description = "Apenas ADMIN pode criar usuários")
     public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserRequestDTO requestDTO) {
-        log.info("ADMIN criando novo usuário - Email: {}, Nome: {}", requestDTO.getEmail(), requestDTO.getName());
+        log.info("Usuário - ADMIN criando. Email: {}, Nome: {}", requestDTO.getEmail(), requestDTO.getName());
 
         long startTime = System.currentTimeMillis();
         UserResponseDTO response = userService.create(requestDTO);
         long duration = System.currentTimeMillis() - startTime;
 
-        log.info("Usuário criado com sucesso em {}ms. ID: {}, Email: {}, Role: {}",
-                duration, response.getId(), response.getEmail(), response.getRoles());
-
+        log.info("Usuário - Criado com sucesso. ID: {}, Email: {}, Roles: {}, Tempo: {}ms",
+                response.getId(), response.getEmail(), response.getRoles(), duration);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Buscar usuário por ID")
-    public ResponseEntity<UserResponseDTO> findById(
-            @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
-
-        log.info("Buscando usuário por ID: {}", id);
+    public ResponseEntity<UserResponseDTO> findById(@PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
+        log.info("Usuário - Busca por ID: {}", id);
 
         long startTime = System.currentTimeMillis();
         UserResponseDTO response = userService.findById(id);
         long duration = System.currentTimeMillis() - startTime;
 
-        log.info("Usuário encontrado em {}ms. ID: {}, Email: {}, Ativo: {}",
-                duration, response.getId(), response.getEmail(), response.getActive());
-
+        log.info("Usuário - Encontrado. ID: {}, Email: {}, Ativo: {}, Tempo: {}ms",
+                response.getId(), response.getEmail(), response.getActive(), duration);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/email/{email}")
-    //@PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Operation(summary = "Buscar usuário por email")
     public ResponseEntity<UserResponseDTO> findByEmail(
             @PathVariable @Email(message = "Email inválido") @NotBlank(message = "Email não pode ser vazio") String email) {
 
-        log.info("Buscando usuário por email: {}", email);
+        log.info("Usuário - Busca por email: {}", email);
 
         long startTime = System.currentTimeMillis();
         UserResponseDTO response = userService.findByEmail(email);
         long duration = System.currentTimeMillis() - startTime;
 
-        log.info("Usuário encontrado em {}ms. ID: {}, Nome: {}", duration, response.getId(), response.getName());
-
+        log.info("Usuário - Encontrado por email. ID: {}, Nome: {}, Tempo: {}ms",
+                response.getId(), response.getName(), duration);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos os usuários")
     public ResponseEntity<List<UserResponseDTO>> findAll() {
-        log.info("Listando todos os usuários");
-
         long startTime = System.currentTimeMillis();
         List<UserResponseDTO> response = userService.findAll();
         long duration = System.currentTimeMillis() - startTime;
 
-        log.info("Listagem de usuários concluída em {}ms. Total de usuários: {}", duration, response.size());
-
-        // ✅ Log da quantidade de usuários por role
         long adminCount = response.stream().filter(u -> u.getRoles().contains("ROLE_ADMIN")).count();
         long employeeCount = response.stream().filter(u -> u.getRoles().contains("ROLE_EMPLOYEE")).count();
 
-        log.info("Distribuição de roles: ADMIN={}, EMPLOYEE={}", adminCount, employeeCount);
-
+        log.info("Usuário - Listagem concluída. Total: {}, ADMIN: {}, EMPLOYEE: {}, Tempo: {}ms",
+                response.size(), adminCount, employeeCount, duration);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar usuário")
-    public ResponseEntity<Void> deactivate(
-            @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
-
-        log.warn("ADMIN desativando usuário ID: {}", id);
+    public ResponseEntity<Void> deactivate(@PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
+        log.warn("Usuário - ADMIN desativando ID: {}", id);
 
         long startTime = System.currentTimeMillis();
         userService.deactivate(id);
         long duration = System.currentTimeMillis() - startTime;
 
-        log.info("Usuário ID: {} desativado com sucesso em {}ms", id, duration);
-
+        log.info("Usuário - Desativado com sucesso. ID: {}, Tempo: {}ms", id, duration);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/role")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Alterar role do usuário (ADMIN/EMPLOYEE)")
     public ResponseEntity<UserResponseDTO> changeRole(
             @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id,
             @RequestParam @Pattern(regexp = "^(ADMIN|EMPLOYEE)$", message = "Role deve ser ADMIN ou EMPLOYEE") String role) {
 
-        log.warn("ADMIN alterando role do usuário ID: {} para: {}", id, role);
+        log.warn("Usuário - ADMIN alterando role. ID: {}, Nova role: {}", id, role);
 
         long startTime = System.currentTimeMillis();
         UserResponseDTO response = userService.changeRole(id, role);
         long duration = System.currentTimeMillis() - startTime;
 
-        log.info("Role do usuário ID: {} alterada para {} em {}ms. Novas roles: {}",
-                id, role, duration, response.getRoles());
-
+        log.info("Usuário - Role alterada com sucesso. ID: {}, Novas roles: {}, Tempo: {}ms",
+                id, response.getRoles(), duration);
         return ResponseEntity.ok(response);
     }
 }
