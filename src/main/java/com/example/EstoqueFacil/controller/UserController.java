@@ -4,6 +4,10 @@ import com.example.EstoqueFacil.dto.user.UserRequestDTO;
 import com.example.EstoqueFacil.dto.user.UserResponseDTO;
 import com.example.EstoqueFacil.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,7 +30,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "Usuários", description = "Endpoints para gerenciamento de usuários")
+@Tag(name = "Usuários", description = "Endpoints para gerenciamento de usuários do sistema")
 @SecurityRequirement(name = "bearer-auth")
 public class UserController {
 
@@ -34,7 +38,21 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Criar novo usuário (funcionário)", description = "Apenas ADMIN pode criar usuários")
+    @Operation(
+            summary = "Criar novo usuário",
+            description = "Cria um novo usuário no sistema com role EMPLOYEE.\n\n" +
+                    "**Regras de negócio:**\n" +
+                    "- Apenas ADMIN pode criar usuários\n" +
+                    "- Email deve ser único\n" +
+                    "- Senha deve ter no mínimo 6 caracteres\n" +
+                    "- Usuário é criado com role EMPLOYEE por padrão\n\n" +
+                    "**Exemplo de requisição:**\n```json\n{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@empresa.com\",\n  \"password\": \"Joao@123\"\n}\n```"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso", content = @Content(schema = @Schema(implementation = UserResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos (email duplicado, senha fraca)", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acesso negado - Necessário role ADMIN", content = @Content)
+    })
     public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserRequestDTO requestDTO) {
         log.info("Usuário - ADMIN criando. Email: {}, Nome: {}", requestDTO.getEmail(), requestDTO.getName());
 
@@ -49,7 +67,14 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Buscar usuário por ID")
+    @Operation(
+            summary = "Buscar usuário por ID",
+            description = "Retorna os detalhes de um usuário específico pelo seu ID. Apenas ADMIN pode acessar."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content)
+    })
     public ResponseEntity<UserResponseDTO> findById(@PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
         log.info("Usuário - Busca por ID: {}", id);
 
@@ -64,7 +89,15 @@ public class UserController {
 
     @GetMapping("/email/{email}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Buscar usuário por email")
+    @Operation(
+            summary = "Buscar usuário por email",
+            description = "Retorna os detalhes de um usuário específico pelo seu email."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Email inválido", content = @Content)
+    })
     public ResponseEntity<UserResponseDTO> findByEmail(
             @PathVariable @Email(message = "Email inválido") @NotBlank(message = "Email não pode ser vazio") String email) {
 
@@ -81,7 +114,10 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar todos os usuários")
+    @Operation(
+            summary = "Listar todos os usuários",
+            description = "Retorna uma lista com todos os usuários cadastrados no sistema. Apenas ADMIN pode acessar."
+    )
     public ResponseEntity<List<UserResponseDTO>> findAll() {
         long startTime = System.currentTimeMillis();
         List<UserResponseDTO> response = userService.findAll();
@@ -97,7 +133,15 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Desativar usuário")
+    @Operation(
+            summary = "Desativar usuário",
+            description = "Realiza desativação lógica do usuário (soft delete). O usuário não é removido do banco, apenas marcado como inativo."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Usuário desativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
     public ResponseEntity<Void> deactivate(@PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id) {
         log.warn("Usuário - ADMIN desativando ID: {}", id);
 
@@ -111,7 +155,16 @@ public class UserController {
 
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Alterar role do usuário (ADMIN/EMPLOYEE)")
+    @Operation(
+            summary = "Alterar role do usuário",
+            description = "Altera a permissão/role de um usuário (ADMIN ou EMPLOYEE). Apenas ADMIN pode executar esta ação."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Role alterada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Role inválida (deve ser ADMIN ou EMPLOYEE)", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
     public ResponseEntity<UserResponseDTO> changeRole(
             @PathVariable @Min(value = 1, message = "ID do usuário deve ser maior que 0") Long id,
             @RequestParam @Pattern(regexp = "^(ADMIN|EMPLOYEE)$", message = "Role deve ser ADMIN ou EMPLOYEE") String role) {
