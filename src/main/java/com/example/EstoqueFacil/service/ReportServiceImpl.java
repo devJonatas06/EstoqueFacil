@@ -9,6 +9,7 @@ import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,21 +33,28 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<BestSellingProductDTO> getBestSellingProducts() {
+        long startTime = System.currentTimeMillis();
         List<Object[]> results = stockMovementRepository.findBestSellingProducts();
-        return results.stream()
+        List<BestSellingProductDTO> response = results.stream()
                 .map(this::mapToBestSellingDTO)
                 .collect(Collectors.toList());
+        log.info("Relatório - Produtos mais vendidos gerado. Total: {}, Tempo: {}ms", response.size(), System.currentTimeMillis() - startTime);
+        return response;
     }
 
     @Override
     public List<BestSellingProductDTO> getWorstSellingProducts() {
         List<BestSellingProductDTO> best = getBestSellingProducts();
         Collections.reverse(best);
+        if (!best.isEmpty()) {
+            log.info("Relatório - Produto com menor giro: {} - {} unidades", best.get(0).getProductName(), best.get(0).getTotalSold());
+        }
         return best;
     }
 
     @Override
     public ProfitReportDTO getProfitReport(LocalDateTime start, LocalDateTime end) {
+        long startTime = System.currentTimeMillis();
         List<StockMovement> sales = stockMovementRepository
                 .findByTypeAndPeriod(StockMovementType.SALE, start, end, Pageable.unpaged())
                 .getContent();
@@ -63,6 +72,9 @@ public class ReportServiceImpl implements ReportService {
         BigDecimal averageTicket = totalItems > 0 ?
                 totalProfit.divide(BigDecimal.valueOf(totalItems), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
+        log.info("Relatório - Lucro gerado. Período: {} a {}, Total: R$ {}, Items: {}, Tempo: {}ms",
+                start, end, totalProfit, totalItems, System.currentTimeMillis() - startTime);
+
         return ProfitReportDTO.builder()
                 .totalProfit(totalProfit)
                 .start(start)
@@ -74,12 +86,15 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public ProfitReportDTO getDetailedProfitReport(LocalDateTime start, LocalDateTime end) {
+        long startTime = System.currentTimeMillis();
         ProfitReportDTO basic = getProfitReport(start, end);
         Map<String, BigDecimal> profitByProduct = getProfitByProduct(start, end);
         String topProduct = profitByProduct.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(null);
+
+        log.info("Relatório - Lucro detalhado gerado. Top produto: {}, Tempo: {}ms", topProduct, System.currentTimeMillis() - startTime);
 
         return ProfitReportDTO.builder()
                 .totalProfit(basic.getTotalProfit())
@@ -96,6 +111,10 @@ public class ReportServiceImpl implements ReportService {
     public List<InactiveProductDTO> getInactiveProducts(int days) {
         LocalDateTime limitDate = LocalDateTime.now().minusDays(days);
         List<Product> products = productRepository.findProductsWithoutMovementSince(limitDate);
+
+        if (!products.isEmpty()) {
+            log.info("Relatório - {} produtos parados há mais de {} dias", products.size(), days);
+        }
 
         return products.stream()
                 .map(p -> InactiveProductDTO.builder()
@@ -115,6 +134,11 @@ public class ReportServiceImpl implements ReportService {
         LocalDate endDate = today.plusDays(days);
         List<ProductBatch> batches = productBatchRepository.findExpiringBatchesBetween(today, endDate);
 
+        long urgentCount = batches.stream().filter(b -> getExpiringStatus(b.getExpirationDate()).equals("URGENTE")).count();
+        if (urgentCount > 0) {
+            log.warn("Relatório - {} lotes em situação URGENTE (vencimento < 7 dias)", urgentCount);
+        }
+
         return batches.stream()
                 .map(b -> ExpiringBatchDTO.builder()
                         .batchId(b.getId())
@@ -133,11 +157,12 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<StockMovementReportDTO> getMovementsByPeriod(LocalDateTime start, LocalDateTime end) {
+        long startTime = System.currentTimeMillis();
         List<StockMovement> movements = stockMovementRepository
                 .findByMovementDateBetween(start, end, Pageable.unpaged())
                 .getContent();
 
-        return movements.stream()
+        List<StockMovementReportDTO> response = movements.stream()
                 .map(m -> StockMovementReportDTO.builder()
                         .movementId(m.getId())
                         .productId(m.getBatch().getProduct().getId())
@@ -157,6 +182,10 @@ public class ReportServiceImpl implements ReportService {
                         .movementDate(m.getMovementDate())
                         .build())
                 .collect(Collectors.toList());
+
+        log.info("Relatório - Movimentações por período gerado. Período: {} a {}, Registros: {}, Tempo: {}ms",
+                start, end, response.size(), System.currentTimeMillis() - startTime);
+        return response;
     }
 
     private Map<String, BigDecimal> getProfitByProduct(LocalDateTime start, LocalDateTime end) {
@@ -205,10 +234,11 @@ public class ReportServiceImpl implements ReportService {
         return "OK";
     }
 
-
     @Override
     public FinancialReportDTO getFinancialReport(LocalDateTime start, LocalDateTime end) {
         ProfitReportDTO profit = getDetailedProfitReport(start, end);
+
+        log.info("Relatório Financeiro - Período: {} a {}, Lucro Total: R$ {}", start, end, profit.getTotalProfit());
 
         return FinancialReportDTO.builder()
                 .totalProfit(profit.getTotalProfit())
@@ -223,16 +253,13 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public StockIntelligenceReportDTO getStockIntelligenceReport() {
-        // Produtos críticos
+        long startTime = System.currentTimeMillis();
         List<CriticalStockProductDTO> critical = getCriticalStockProducts();
+        List<StockIntelligenceReportDTO.StockBreakdownPredictionDTO> predictions = calculateBreakdownPredictions();
+        List<StockIntelligenceReportDTO.DaysBelowMinimumDTO> daysBelow = getDaysBelowMinimum();
 
-        // Previsão de ruptura
-        List<StockIntelligenceReportDTO.StockBreakdownPredictionDTO> predictions =
-                calculateBreakdownPredictions();
-
-        // Dias abaixo do mínimo
-        List<StockIntelligenceReportDTO.DaysBelowMinimumDTO> daysBelow =
-                getDaysBelowMinimum();
+        log.info("Relatório Estoque Inteligente - Críticos: {}, Ruptura prevista: {}, Tempo: {}ms",
+                critical.size(), predictions.size(), System.currentTimeMillis() - startTime);
 
         return StockIntelligenceReportDTO.builder()
                 .criticalProducts(critical)
@@ -267,6 +294,10 @@ public class ReportServiceImpl implements ReportService {
             if (dailySales > 0 && currentStock < p.getMinimumStock()) {
                 int daysToBreakdown = currentStock / dailySales;
                 String riskLevel = daysToBreakdown < 7 ? "ALTO" : (daysToBreakdown < 30 ? "MÉDIO" : "BAIXO");
+
+                if ("ALTO".equals(riskLevel)) {
+                    log.warn("Estoque - Risco ALTO de ruptura. Produto: {}, Dias restantes: {}", p.getName(), daysToBreakdown);
+                }
 
                 predictions.add(StockIntelligenceReportDTO.StockBreakdownPredictionDTO.builder()
                         .productId(p.getId())
@@ -308,13 +339,12 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private Integer calculateDaysBelowMinimum(Long productId) {
-        // Implementação simplificada - pode ser mais complexa
-        return 5; // Placeholder
+        return 5;
     }
-
 
     @Override
     public LossReportDTO getLossReport() {
+        long startTime = System.currentTimeMillis();
         List<ProductBatch> expiredBatches = productBatchRepository.findExpiredBatches(LocalDate.now());
 
         BigDecimal totalLoss = expiredBatches.stream()
@@ -325,6 +355,10 @@ public class ReportServiceImpl implements ReportService {
         int totalUnits = expiredBatches.stream()
                 .mapToInt(ProductBatch::getQuantity)
                 .sum();
+
+        if (!expiredBatches.isEmpty()) {
+            log.warn("Relatório de Perdas - Produtos vencidos encontrados. Total: {} unidades, Prejuízo: R$ {}", totalUnits, totalLoss);
+        }
 
         List<ExpiredBatchDTO> expiredDTOs = expiredBatches.stream()
                 .map(b -> ExpiredBatchDTO.builder()
@@ -341,6 +375,8 @@ public class ReportServiceImpl implements ReportService {
                         .build())
                 .collect(Collectors.toList());
 
+        log.info("Relatório de Perdas gerado. Total unidades vencidas: {}, Tempo: {}ms", totalUnits, System.currentTimeMillis() - startTime);
+
         return LossReportDTO.builder()
                 .expiredProducts(expiredDTOs)
                 .totalEstimatedLoss(totalLoss)
@@ -348,20 +384,18 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-
     @Override
     public PerformanceReportDTO getPerformanceReport() {
-        // Produtos encalhados (sem venda há 60 dias)
+        long startTime = System.currentTimeMillis();
         List<InactiveProductDTO> stagnant = getInactiveProducts(60);
-
-        // Produtos com alta saída
         List<BestSellingProductDTO> highTurnover = getBestSellingProducts();
         if (highTurnover.size() > 10) {
             highTurnover = highTurnover.subList(0, 10);
         }
-
-        // Giro de estoque
         List<PerformanceReportDTO.ProductTurnoverDTO> turnover = calculateTurnoverRate();
+
+        log.info("Relatório de Performance - Encalhados: {}, Top produtos: {}, Giro calculado: {}, Tempo: {}ms",
+                stagnant.size(), highTurnover.size(), turnover.size(), System.currentTimeMillis() - startTime);
 
         return PerformanceReportDTO.builder()
                 .stagnantProducts(stagnant)
@@ -378,8 +412,7 @@ public class ReportServiceImpl implements ReportService {
             Integer totalSold = getTotalSoldLastYear(p.getId());
             Integer averageStock = getAverageStock(p.getId());
 
-            double turnoverRate = averageStock > 0 ?
-                    (double) totalSold / averageStock : 0;
+            double turnoverRate = averageStock > 0 ? (double) totalSold / averageStock : 0;
 
             result.add(PerformanceReportDTO.ProductTurnoverDTO.builder()
                     .productId(p.getId())
@@ -410,5 +443,4 @@ public class ReportServiceImpl implements ReportService {
     private Integer getAverageStock(Long productId) {
         return getCurrentStock(productId);
     }
-
 }
