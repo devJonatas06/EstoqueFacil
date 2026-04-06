@@ -8,6 +8,10 @@ import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,7 +36,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-@Tag(name = "Produtos", description = "Endpoints para gerenciamento de produtos")
+@Tag(name = "Produtos", description = "Endpoints para gerenciamento de produtos do estoque")
 @SecurityRequirement(name = "bearer-auth")
 public class ProductController {
 
@@ -40,7 +44,20 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Criar novo produto", description = "Apenas ADMIN pode criar produtos")
+    @Operation(
+            summary = "Criar novo produto",
+            description = "Cria um novo produto no sistema.\n\n**Regras de negócio:**\n" +
+                    "- Apenas ADMIN pode criar produtos\n" +
+                    "- Código de barras deve ser único\n" +
+                    "- Preço de venda deve ser maior que preço de custo\n" +
+                    "- Estoque mínimo não pode ser negativo\n\n" +
+                    "**Exemplo de requisição:**\n```json\n{\n  \"name\": \"Smartphone\",\n  \"barcode\": \"7891234567890\",\n  \"costPrice\": 800.00,\n  \"salePrice\": 1200.00,\n  \"minimumStock\": 10,\n  \"categoryId\": 1\n}\n```"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Produto criado com sucesso", content = @Content(schema = @Schema(implementation = ProductResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos (código duplicado, preços inválidos)", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acesso negado - Necessário role ADMIN", content = @Content)
+    })
     public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductRequestDTO requestDTO) {
         log.info("Produto - ADMIN criando. Nome: {}, Código: {}, Preço venda: {}",
                 requestDTO.getName(), requestDTO.getBarcode(), requestDTO.getSalePrice());
@@ -55,7 +72,15 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Atualizar produto")
+    @Operation(
+            summary = "Atualizar produto",
+            description = "Atualiza os dados de um produto existente. Apenas ADMIN pode atualizar."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produto atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
     public ResponseEntity<ProductResponseDTO> update(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id,
             @Valid @RequestBody ProductUpdateDTO dto) {
@@ -72,7 +97,14 @@ public class ProductController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Buscar produto por ID")
+    @Operation(
+            summary = "Buscar produto por ID",
+            description = "Retorna os detalhes de um produto específico, incluindo estoque atual e status crítico."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produto encontrado"),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
+    })
     public ResponseEntity<ProductResponseDTO> findById(@PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id) {
         log.info("Produto - Busca por ID: {}", id);
 
@@ -91,7 +123,18 @@ public class ProductController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Listar todos os produtos (paginado)")
+    @Operation(
+            summary = "Listar produtos (paginado)",
+            description = "Retorna uma lista paginada de todos os produtos ativos.\n\n" +
+                    "**Parâmetros de paginação:**\n" +
+                    "- `page`: número da página (padrão: 0)\n" +
+                    "- `size`: itens por página (padrão: 20, máximo: 100)\n" +
+                    "- `sortBy`: campo para ordenação (name, price, createdAt, barcode)\n" +
+                    "- `direction`: asc ou desc"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso")
+    })
     public ResponseEntity<PageableResponse<ProductResponseDTO>> findAll(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
@@ -126,7 +169,14 @@ public class ProductController {
 
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Buscar produtos por nome")
+    @Operation(
+            summary = "Buscar produtos por nome",
+            description = "Realiza busca parcial pelo nome do produto (case insensitive)."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produtos encontrados com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Nome deve ter entre 2 e 100 caracteres", content = @Content)
+    })
     public ResponseEntity<Page<ProductResponseDTO>> searchByName(
             @RequestParam @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres") String name,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -143,7 +193,14 @@ public class ProductController {
 
     @GetMapping("/category/{categoryId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Listar produtos por categoria")
+    @Operation(
+            summary = "Listar produtos por categoria",
+            description = "Retorna todos os produtos pertencentes a uma categoria específica."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produtos listados com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content)
+    })
     public ResponseEntity<Page<ProductResponseDTO>> findByCategory(
             @PathVariable @Min(value = 1, message = "ID da categoria deve ser maior que 0") Long categoryId,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -160,7 +217,15 @@ public class ProductController {
 
     @GetMapping("/barcode/{barcode}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Buscar produto por código de barras")
+    @Operation(
+            summary = "Buscar produto por código de barras",
+            description = "Busca um produto específico pelo seu código de barras único."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produto encontrado"),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Código de barras inválido (8-14 dígitos)", content = @Content)
+    })
     public ResponseEntity<ProductResponseDTO> findByBarcode(
             @PathVariable @NotBlank(message = "Código de barras não pode ser vazio")
             @Pattern(regexp = "^[0-9]{8,14}$", message = "Código de barras deve ter entre 8 e 14 dígitos numéricos")
@@ -178,7 +243,25 @@ public class ProductController {
 
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Buscar produtos com filtros avançados")
+    @Operation(
+            summary = "Buscar produtos com filtros avançados",
+            description = "Busca produtos utilizando múltiplos critérios de filtro simultaneamente.\n\n" +
+                    "**Filtros disponíveis:**\n" +
+                    "- `name`: nome do produto (busca parcial)\n" +
+                    "- `barcode`: código de barras\n" +
+                    "- `categoryId`: ID da categoria\n" +
+                    "- `minPrice`: preço mínimo\n" +
+                    "- `maxPrice`: preço máximo\n" +
+                    "- `stockStatus`: OK, BAIXO ou CRÍTICO\n" +
+                    "- `active`: ativo/inativo\n\n" +
+                    "**Regras:**\n" +
+                    "- Preço mínimo não pode ser maior que preço máximo\n" +
+                    "- Ordenação permitida apenas nos campos: name, salePrice, costPrice, createdAt, minimumStock"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produtos encontrados com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Parâmetros de filtro inválidos", content = @Content)
+    })
     public ResponseEntity<PageableResponse<ProductResponseDTO>> filterProducts(
             @RequestParam(required = false) @Size(min = 2, max = 100) String name,
             @RequestParam(required = false) @Pattern(regexp = "^[0-9]{8,14}$") String barcode,
@@ -233,7 +316,15 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Desativar produto (soft delete)")
+    @Operation(
+            summary = "Desativar produto",
+            description = "Realiza desativação lógica do produto (soft delete). O produto não é removido do banco, apenas marcado como inativo."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Produto desativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
     public ResponseEntity<Void> deactivate(@PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id) {
         log.warn("Produto - ADMIN desativando ID: {}", id);
 
