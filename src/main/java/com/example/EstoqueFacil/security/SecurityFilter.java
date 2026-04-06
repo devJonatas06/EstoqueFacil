@@ -36,7 +36,6 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Endpoints públicos
         if (path.startsWith("/auth") ||
                 path.startsWith("/v3/api-docs") ||
                 path.startsWith("/swagger-ui")) {
@@ -50,17 +49,18 @@ public class SecurityFilter extends OncePerRequestFilter {
             String email = tokenService.validateToken(token);
 
             if (email != null) {
-                // ✅ USAR findByEmailWithRoles (para carregar as roles)
                 User user = userRepository.findByEmailWithRoles(email)
-                        .orElseThrow(() -> new RuntimeException("User Not Found"));
+                        .orElseThrow(() -> {
+                            log.warn("SecurityFilter - Token válido mas usuário não encontrado: {}", email);
+                            return new RuntimeException("User Not Found");
+                        });
 
-                log.info("Usuário autenticado: {} | Roles: {}",
+                log.info("SecurityFilter - Usuário autenticado: {}, Roles: {}",
                         email,
                         user.getRoles().stream().map(r -> r.getName()).collect(Collectors.toList()));
 
                 UserPrincipal userPrincipal = UserPrincipal.from(user);
 
-                // ✅ PEGAR AS AUTHORITIES DAS ROLES DO USUÁRIO
                 var authorities = user.getRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.getName()))
                         .collect(Collectors.toList());
@@ -72,7 +72,11 @@ public class SecurityFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                log.warn("SecurityFilter - Token inválido ou expirado para requisição: {}", path);
             }
+        } else {
+            log.warn("SecurityFilter - Requisição sem token para endpoint protegido: {}", path);
         }
 
         filterChain.doFilter(request, response);
