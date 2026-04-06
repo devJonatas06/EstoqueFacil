@@ -29,6 +29,6 @@ public class CustomDetailsService implements UserDetailsService {
 
         log.debug("Security | User details loaded | email={} | userId={} | roles={}",
                 email, user.getId(), user.getRoles());
-        return UserPrincipal.from(user)
+        return UserPrincipal.from(user);
     }
 }
