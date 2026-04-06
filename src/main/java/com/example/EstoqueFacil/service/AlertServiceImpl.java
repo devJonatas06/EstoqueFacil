@@ -7,6 +7,7 @@ import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -56,12 +58,28 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     public AlertSummaryDTO getAlertSummary() {
+        List<Product> lowStock = getLowStockProducts();
+        List<Product> inactive = getInactiveProducts(30);
+        List<ProductBatch> expiring = getExpiringBatches(30);
+        List<ProductBatch> expired = getExpiredBatches();
+        List<Product> critical = getCriticalStockProducts(7);
+
+        if (!lowStock.isEmpty()) {
+            log.warn("Alerta - {} produtos com estoque abaixo do mínimo", lowStock.size());
+        }
+        if (!critical.isEmpty()) {
+            log.warn("Alerta - {} produtos em situação CRÍTICA", critical.size());
+        }
+        if (!expired.isEmpty()) {
+            log.warn("Alerta - {} lotes vencidos encontrados", expired.size());
+        }
+
         return AlertSummaryDTO.builder()
-                .lowStockCount(getLowStockProducts().size())
-                .inactiveProductsCount(getInactiveProducts(30).size())
-                .expiringSoonCount(getExpiringBatches(30).size())
-                .expiredCount(getExpiredBatches().size())
-                .criticalStockCount(getCriticalStockProducts(7).size())
+                .lowStockCount(lowStock.size())
+                .inactiveProductsCount(inactive.size())
+                .expiringSoonCount(expiring.size())
+                .expiredCount(expired.size())
+                .criticalStockCount(critical.size())
                 .generatedAt(LocalDateTime.now())
                 .build();
     }
