@@ -1,6 +1,7 @@
 package com.example.EstoqueFacil.security;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class PasswordStrengthValidator {
     private final Set<String> weakPasswords = new HashSet<>();
@@ -26,26 +28,31 @@ public class PasswordStrengthValidator {
                             .map(String::toLowerCase)
                             .collect(Collectors.toSet())
             );
+            log.info("PasswordStrengthValidator - Blacklist carregada com {} senhas fracas", weakPasswords.size());
         } catch (Exception e) {
-            System.err.println("Error loading blacklist: " + e.getMessage());
+            log.error("PasswordStrengthValidator - Erro ao carregar blacklist: {}", e.getMessage(), e);
         }
     }
 
     public void validate(String password) {
         if (password == null || password.trim().isEmpty()) {
+            log.warn("PasswordStrengthValidator - Tentativa de senha vazia");
             throw new IllegalArgumentException("Password cannot be empty.");
         }
 
         if (password.length() < 8) {
+            log.warn("PasswordStrengthValidator - Senha muito curta: {} caracteres", password.length());
             throw new IllegalArgumentException("Password must be at least 8 characters long.");
         }
 
         String lower = password.toLowerCase();
         if (weakPasswords.contains(lower)) {
+            log.warn("PasswordStrengthValidator - Senha comum detectada");
             throw new IllegalArgumentException("This password is too common. Please choose a more unique password.");
         }
 
         if (isSimpleVariation(lower)) {
+            log.warn("PasswordStrengthValidator - Variação de senha comum detectada");
             throw new IllegalArgumentException("This password is a variation of common passwords. Try something more original.");
         }
     }
