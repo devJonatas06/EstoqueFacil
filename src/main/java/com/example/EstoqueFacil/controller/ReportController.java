@@ -6,6 +6,9 @@ import com.example.EstoqueFacil.service.AlertService;
 import com.example.EstoqueFacil.service.ReportService;
 import com.example.EstoqueFacil.service.PdfReportService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.*;
@@ -26,7 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
-@Tag(name = "Relatórios", description = "Endpoints para relatórios e alertas")
+@Tag(name = "Relatórios", description = "Endpoints para geração de relatórios gerenciais e alertas")
 @SecurityRequirement(name = "bearer-auth")
 public class ReportController {
 
@@ -36,7 +39,13 @@ public class ReportController {
 
     @GetMapping("/alerts/summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Resumo de alertas (apenas contadores)")
+    @Operation(
+            summary = "Resumo de alertas",
+            description = "Retorna um resumo com contadores de todos os alertas do sistema (estoque baixo, produtos parados, lotes vencendo, etc.)"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Resumo gerado com sucesso")
+    })
     public ResponseEntity<AlertSummaryDTO> getAlertSummary() {
         long startTime = System.currentTimeMillis();
         AlertSummaryDTO response = alertService.getAlertSummary();
@@ -51,7 +60,10 @@ public class ReportController {
 
     @GetMapping("/alerts/details")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Detalhes completos dos alertas")
+    @Operation(
+            summary = "Detalhes dos alertas",
+            description = "Retorna listas completas com detalhes de todos os alertas (produtos com estoque baixo, lotes vencendo, etc.)"
+    )
     public ResponseEntity<AlertDetailDTO> getAlertDetails() {
         long startTime = System.currentTimeMillis();
         AlertDetailDTO response = alertService.getAlertDetails();
@@ -63,7 +75,10 @@ public class ReportController {
 
     @GetMapping("/best-sellers")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Produtos mais vendidos")
+    @Operation(
+            summary = "Produtos mais vendidos",
+            description = "Retorna ranking dos produtos mais vendidos do período (último ano)."
+    )
     public ResponseEntity<List<BestSellingProductDTO>> getBestSellers() {
         long startTime = System.currentTimeMillis();
         List<BestSellingProductDTO> response = reportService.getBestSellingProducts();
@@ -80,7 +95,10 @@ public class ReportController {
 
     @GetMapping("/worst-sellers")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Produtos menos vendidos (menor giro)")
+    @Operation(
+            summary = "Produtos menos vendidos",
+            description = "Retorna ranking dos produtos com menor giro de vendas."
+    )
     public ResponseEntity<List<BestSellingProductDTO>> getWorstSellers() {
         long startTime = System.currentTimeMillis();
         List<BestSellingProductDTO> response = reportService.getWorstSellingProducts();
@@ -92,7 +110,18 @@ public class ReportController {
 
     @GetMapping("/profit")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Lucro estimado por período")
+    @Operation(
+            summary = "Relatório de lucro por período",
+            description = "Calcula o lucro total do período especificado.\n\n" +
+                    "**Regras:**\n" +
+                    "- Período máximo: 1 ano\n" +
+                    "- Data de início deve ser anterior à data de fim\n" +
+                    "- Use `includeDetails=true` para obter lucro por produto"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relatório gerado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Período inválido (início após fim ou período muito longo)", content = @Content)
+    })
     public ResponseEntity<ProfitReportDTO> getProfitReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @PastOrPresent(message = "Data de início deve ser passada ou presente") LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @PastOrPresent(message = "Data de fim deve ser passada ou presente") LocalDateTime end,
@@ -123,7 +152,10 @@ public class ReportController {
 
     @GetMapping("/inactive")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Produtos parados há X dias")
+    @Operation(
+            summary = "Produtos parados",
+            description = "Lista produtos que não tiveram movimentação de venda nos últimos X dias (padrão: 30 dias, máximo: 365)."
+    )
     public ResponseEntity<List<InactiveProductDTO>> getInactiveProducts(
             @RequestParam(defaultValue = "30") @Min(value = 1, message = "Dias deve ser maior que 0") @Max(value = 365, message = "Dias não pode exceder 365") int days) {
 
@@ -139,7 +171,10 @@ public class ReportController {
 
     @GetMapping("/low-stock")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Produtos com estoque abaixo do mínimo")
+    @Operation(
+            summary = "Estoque baixo",
+            description = "Lista produtos com estoque atual abaixo do estoque mínimo configurado."
+    )
     public ResponseEntity<List<LowStockProductDTO>> getLowStockProducts() {
         long startTime = System.currentTimeMillis();
         List<LowStockProductDTO> response = alertService.getLowStockProductsDTO();
@@ -156,7 +191,10 @@ public class ReportController {
 
     @GetMapping("/expiring")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Lotes próximos ao vencimento")
+    @Operation(
+            summary = "Lotes próximos ao vencimento",
+            description = "Lista lotes que vencem nos próximos X dias (padrão: 30 dias, máximo: 180)."
+    )
     public ResponseEntity<List<ExpiringBatchDTO>> getExpiringBatches(
             @RequestParam(defaultValue = "30") @Min(value = 1, message = "Dias deve ser maior que 0") @Max(value = 180, message = "Dias não pode exceder 180") int days) {
 
@@ -177,7 +215,17 @@ public class ReportController {
 
     @GetMapping("/movements")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Histórico de movimentações por período")
+    @Operation(
+            summary = "Histórico de movimentações por período",
+            description = "Retorna todas as movimentações de estoque (entradas, vendas, perdas) no período especificado.\n\n" +
+                    "**Regras:**\n" +
+                    "- Período máximo: 90 dias\n" +
+                    "- Data de início deve ser anterior à data de fim"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Histórico gerado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Período inválido (início após fim ou período muito longo)", content = @Content)
+    })
     public ResponseEntity<List<StockMovementReportDTO>> getMovementsByPeriod(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @PastOrPresent(message = "Data de início deve ser passada ou presente") LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @PastOrPresent(message = "Data de fim deve ser passada ou presente") LocalDateTime end) {
@@ -209,7 +257,14 @@ public class ReportController {
 
     @GetMapping("/export/pdf")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Exportar todos os relatórios em PDF")
+    @Operation(
+            summary = "Exportar relatórios em PDF",
+            description = "Gera um arquivo PDF completo com todos os relatórios (financeiro, estoque, perdas, performance)."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PDF gerado com sucesso", content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "500", description = "Erro ao gerar PDF", content = @Content)
+    })
     public ResponseEntity<byte[]> exportAllReportsToPdf() {
         log.info("Relatório - Solicitação de exportação PDF");
 
