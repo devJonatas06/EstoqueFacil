@@ -6,6 +6,9 @@ import com.example.EstoqueFacil.dto.stock.StockMovementResponseDTO;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/stock")
 @RequiredArgsConstructor
-@Tag(name = "Estoque", description = "Endpoints para movimentação de estoque")
+@Tag(name = "Estoque", description = "Endpoints para movimentação e controle de estoque")
 @SecurityRequirement(name = "bearer-auth")
 public class StockController {
 
@@ -35,7 +38,19 @@ public class StockController {
 
     @PostMapping("/entry")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Registrar entrada de produtos (compra)")
+    @Operation(
+            summary = "Registrar entrada de produtos",
+            description = "Registra a entrada de um lote de produtos no estoque (compra).\n\n" +
+                    "**Regras de negócio:**\n" +
+                    "- Quantidade deve ser maior que zero\n" +
+                    "- Produto deve estar ativo\n" +
+                    "- Usuário deve estar ativo"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Entrada registrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos (quantidade zerada, produto inativo)", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Produto ou usuário não encontrado", content = @Content)
+    })
     public ResponseEntity<Void> registerEntry(@Valid @RequestBody StockEntryDTO entryDTO) {
         log.info("Estoque - ENTRADA. Produto ID: {}, Quantidade: {}, Usuário ID: {}",
                 entryDTO.getProductId(), entryDTO.getQuantity(), entryDTO.getUserId());
@@ -51,7 +66,19 @@ public class StockController {
 
     @PostMapping("/exit")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Registrar saída de produtos (venda ou perda)")
+    @Operation(
+            summary = "Registrar saída de produtos",
+            description = "Registra a saída de produtos do estoque (venda ou perda).\n\n" +
+                    "**Regras de negócio:**\n" +
+                    "- Tipo de saída: SALE (venda) ou LOSS (perda)\n" +
+                    "- Quantidade não pode exceder o estoque disponível\n" +
+                    "- Utiliza lógica FIFO (First-In-First-Out) para baixar os lotes"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Saída registrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos ou estoque insuficiente", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Produto ou usuário não encontrado", content = @Content)
+    })
     public ResponseEntity<Void> registerExit(@Valid @RequestBody StockExitDTO exitDTO) {
         log.info("Estoque - SAÍDA. Produto ID: {}, Quantidade: {}, Tipo: {}, Usuário ID: {}",
                 exitDTO.getProductId(), exitDTO.getQuantity(), exitDTO.getType(), exitDTO.getUserId());
@@ -67,7 +94,10 @@ public class StockController {
 
     @GetMapping("/movements")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Listar histórico de movimentações")
+    @Operation(
+            summary = "Listar histórico de movimentações",
+            description = "Retorna o histórico completo de todas as movimentações de estoque (entradas, vendas e perdas), paginado e ordenado por data decrescente."
+    )
     public ResponseEntity<Page<StockMovementResponseDTO>> getMovements(
             @PageableDefault(size = 50, sort = "movementDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
@@ -84,7 +114,14 @@ public class StockController {
 
     @GetMapping("/movements/product/{productId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Listar movimentações de um produto específico")
+    @Operation(
+            summary = "Listar movimentações de um produto",
+            description = "Retorna o histórico de movimentações de um produto específico."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Movimentações listadas com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
+    })
     public ResponseEntity<Page<StockMovementResponseDTO>> getMovementsByProduct(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long productId,
             @PageableDefault(size = 50, sort = "movementDate", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -103,7 +140,14 @@ public class StockController {
 
     @GetMapping("/current/{productId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @Operation(summary = "Consultar estoque atual de um produto")
+    @Operation(
+            summary = "Consultar estoque atual",
+            description = "Retorna a quantidade atual em estoque de um produto específico."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
+    })
     public ResponseEntity<Integer> getCurrentStock(@PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long productId) {
         log.info("Estoque - Consulta de estoque. Produto ID: {}", productId);
 
