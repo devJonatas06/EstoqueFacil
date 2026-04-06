@@ -8,12 +8,14 @@ import com.example.EstoqueFacil.exception.ResourceNotFoundException;
 import com.example.EstoqueFacil.mapper.CategoryMapper;
 import com.example.EstoqueFacil.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,6 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO create(CategoryRequestDTO requestDTO) {
         if (categoryRepository.existsByName(requestDTO.getName())) {
+            log.warn("Categoria - Tentativa de criar categoria duplicada: {}", requestDTO.getName());
             throw new BusinessException("Categoria já existe: " + requestDTO.getName());
         }
 
@@ -32,6 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setActive(true);
 
         Category saved = categoryRepository.save(category);
+        log.info("Categoria - Criada com sucesso. ID: {}, Nome: {}", saved.getId(), saved.getName());
         return categoryMapper.toResponseDTO(saved);
     }
 
@@ -39,14 +43,14 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO update(Long id, CategoryRequestDTO requestDTO) {
         Category category = findByIdEntity(id);
 
-        if (!category.getName().equals(requestDTO.getName()) &&
-                categoryRepository.existsByName(requestDTO.getName())) {
+        if (!category.getName().equals(requestDTO.getName()) && categoryRepository.existsByName(requestDTO.getName())) {
+            log.warn("Categoria - Tentativa de atualizar para nome duplicado. ID: {}, Nome: {}", id, requestDTO.getName());
             throw new BusinessException("Categoria já existe: " + requestDTO.getName());
         }
 
         categoryMapper.updateEntity(category, requestDTO);
-
         Category updated = categoryRepository.save(category);
+        log.info("Categoria - Atualizada com sucesso. ID: {}, Nome: {}", updated.getId(), updated.getName());
         return categoryMapper.toResponseDTO(updated);
     }
 
@@ -69,10 +73,14 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = findByIdEntity(id);
         category.setActive(false);
         categoryRepository.save(category);
+        log.info("Categoria - Desativada com sucesso. ID: {}, Nome: {}", id, category.getName());
     }
 
     private Category findByIdEntity(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com ID: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Categoria - Não encontrada. ID: {}", id);
+                    return new ResourceNotFoundException("Categoria não encontrada com ID: " + id);
+                });
     }
 }
