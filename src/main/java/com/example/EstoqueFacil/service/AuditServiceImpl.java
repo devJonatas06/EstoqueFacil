@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional
 public class AuditServiceImpl implements AuditService {
 
@@ -40,8 +40,9 @@ public class AuditServiceImpl implements AuditService {
             }
 
             auditLogRepository.save(auditLog);
+            log.debug("Auditoria registrada - Ação: {}, Entidade: {}, ID: {}", action, entityType, entityId);
         } catch (Exception e) {
-            log.error("Erro ao salvar auditoria: {}", e.getMessage());
+            log.error("Erro ao salvar auditoria - Ação: {}, Erro: {}", action, e.getMessage(), e);
         }
     }
 
@@ -56,8 +57,9 @@ public class AuditServiceImpl implements AuditService {
             auditLog.setUserEmail(userEmail);
             auditLog.setDetails(details);
             auditLogRepository.save(auditLog);
+            log.debug("Auditoria simples registrada - Ação: {}", action);
         } catch (Exception e) {
-            log.error("Erro ao salvar auditoria: {}", e.getMessage());
+            log.error("Erro ao salvar auditoria simples - Ação: {}, Erro: {}", action, e.getMessage(), e);
         }
     }
 
@@ -99,17 +101,18 @@ public class AuditServiceImpl implements AuditService {
                 .timestamp(log.getTimestamp())
                 .build();
     }
+
     public void recordAction(String email, String action) {
         try {
             AuditLog log = new AuditLog();
             log.setUserEmail(email);
             log.setAction(action);
-            log.setEntityType("AUTH"); // ✅ CAMPO OBRIGATÓRIO
+            log.setEntityType("AUTH");
             log.setTimestamp(LocalDateTime.now());
             auditLogRepository.save(log);
-            log.debug("Auditoria salva: {} - {}", action, email);
+            log.info("Auditoria - Ação registrada: {} para usuário: {}", action, email);
         } catch (Exception e) {
-            log.error("Erro ao salvar auditoria: {}", e.getMessage());
+            log.error("Erro ao salvar auditoria de ação: {}", e.getMessage(), e);
         }
     }
 }
