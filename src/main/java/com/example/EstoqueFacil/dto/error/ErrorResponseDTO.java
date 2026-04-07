@@ -33,4 +33,7 @@ public class ErrorResponseDTO {
 
     @Schema(description = "Erros de validação por campo (para requisições inválidas)")
     private Map<String, String> validationErrors;
+
+    private String traceId;
+
 }
