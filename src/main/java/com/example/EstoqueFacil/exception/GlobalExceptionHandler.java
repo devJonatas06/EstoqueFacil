@@ -1,15 +1,15 @@
-package com.example.EstoqueFacil.exception.handler;
+package com.example.EstoqueFacil.exception;
 
 import com.example.EstoqueFacil.dto.error.ErrorResponseDTO;
-import com.example.EstoqueFacil.exception.BusinessException;
-import com.example.EstoqueFacil.exception.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -48,6 +48,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Violação de integridade de dados: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.CONFLICT, "Violação de integridade", "Dado duplicado ou referência inválida");
+    }
+
     @ExceptionHandler({
             ConstraintViolationException.class,
             MethodArgumentTypeMismatchException.class,
@@ -57,6 +63,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleBadRequest(Exception ex) {
         log.warn("Requisição inválida: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Requisição inválida", ex.getMessage());
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        log.warn("Método HTTP não suportado: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.METHOD_NOT_ALLOWED, "Método não suportado", ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
