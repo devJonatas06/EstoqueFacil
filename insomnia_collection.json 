@@ -1,0 +1,572 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-04-09T00:00:00.000Z",
+  "__export_source": "insomnia.desktop",
+  "resources": [
+    {
+      "_id": "req_auth_login",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/auth/login",
+      "name": "01 - Login",
+      "description": "Autentica o usuário e retorna um token JWT",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@estoque.com\",\n  \"password\": \"Admin@123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -100
+    },
+    {
+      "_id": "req_auth_register",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/auth/register",
+      "name": "02 - Registrar Usuário",
+      "description": "Registra um novo usuário no sistema",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Funcionario Teste\",\n  \"email\": \"funcionario@teste.com\",\n  \"password\": \"Func@123456\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -99
+    },
+    {
+      "_id": "req_cat_create",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/categories",
+      "name": "03 - Criar Categoria",
+      "description": "Cria uma nova categoria de produto (requer ADMIN)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Eletrônicos\",\n  \"description\": \"Produtos eletrônicos em geral\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -98
+    },
+    {
+      "_id": "req_cat_list",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/categories",
+      "name": "04 - Listar Categorias",
+      "description": "Retorna todas as categorias ativas",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -97
+    },
+    {
+      "_id": "req_prod_create",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/products",
+      "name": "05 - Criar Produto",
+      "description": "Cria um novo produto (requer ADMIN)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Smartphone Galaxy S23\",\n  \"barcode\": \"7891234567890\",\n  \"description\": \"Smartphone 256GB, 8GB RAM\",\n  \"maker\": \"Samsung\",\n  \"costPrice\": 2500.00,\n  \"salePrice\": 3500.00,\n  \"minimumStock\": 10,\n  \"categoryId\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -96
+    },
+    {
+      "_id": "req_prod_list",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/products",
+      "name": "06 - Listar Produtos",
+      "description": "Retorna lista paginada de produtos ativos",
+      "method": "GET",
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "10"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -95
+    },
+    {
+      "_id": "req_prod_id",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/products/1",
+      "name": "07 - Buscar Produto por ID",
+      "description": "Retorna detalhes de um produto específico",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -94
+    },
+    {
+      "_id": "req_prod_barcode",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/products/barcode/7891234567890",
+      "name": "08 - Buscar Produto por Código de Barras",
+      "description": "Busca produto pelo código de barras",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -93
+    },
+    {
+      "_id": "req_prod_search",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/products/search?name=Smart",
+      "name": "09 - Buscar Produtos por Nome",
+      "description": "Busca produtos por nome (busca parcial)",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -92
+    },
+    {
+      "_id": "req_stock_entry",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/stock/entry",
+      "name": "10 - Entrada de Estoque",
+      "description": "Registra entrada de produtos (compra)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 1,\n  \"quantity\": 100,\n  \"expirationDate\": \"2026-12-31\",\n  \"userId\": 1,\n  \"observation\": \"Compra nota fiscal 12345\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -91
+    },
+    {
+      "_id": "req_stock_current",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/stock/current/1",
+      "name": "11 - Consultar Estoque Atual",
+      "description": "Retorna a quantidade atual em estoque",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -90
+    },
+    {
+      "_id": "req_stock_exit",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/stock/exit",
+      "name": "12 - Registrar Saída (Venda)",
+      "description": "Registra saída de produtos (venda)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 1,\n  \"quantity\": 10,\n  \"userId\": 1,\n  \"observation\": \"Venda para cliente João\",\n  \"type\": \"SALE\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -89
+    },
+    {
+      "_id": "req_stock_loss",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/stock/exit",
+      "name": "13 - Registrar Saída (Perda)",
+      "description": "Registra saída de produtos (perda)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 1,\n  \"quantity\": 2,\n  \"userId\": 1,\n  \"observation\": \"Produto danificado\",\n  \"type\": \"LOSS\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -88
+    },
+    {
+      "_id": "req_stock_movements",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/stock/movements",
+      "name": "14 - Histórico de Movimentações",
+      "description": "Lista todas as movimentações de estoque",
+      "method": "GET",
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "20"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -87
+    },
+    {
+      "_id": "req_report_alerts",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/alerts/summary",
+      "name": "15 - Resumo de Alertas",
+      "description": "Retorna resumo com contadores de alertas",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -86
+    },
+    {
+      "_id": "req_report_bestsellers",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/best-sellers",
+      "name": "16 - Produtos Mais Vendidos",
+      "description": "Ranking dos produtos mais vendidos",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -85
+    },
+    {
+      "_id": "req_report_profit",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/profit?start=2024-01-01T00:00:00&end=2026-12-31T23:59:59",
+      "name": "17 - Relatório de Lucro",
+      "description": "Calcula lucro total no período",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -84
+    },
+    {
+      "_id": "req_report_lowstock",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/low-stock",
+      "name": "18 - Estoque Baixo",
+      "description": "Lista produtos com estoque abaixo do mínimo",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -83
+    },
+    {
+      "_id": "req_report_inactive",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/inactive?days=30",
+      "name": "19 - Produtos Parados",
+      "description": "Lista produtos sem movimentação há X dias",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -82
+    },
+    {
+      "_id": "req_report_expiring",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/expiring?days=30",
+      "name": "20 - Lotes Próximos ao Vencimento",
+      "description": "Lista lotes que vencem nos próximos X dias",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -81
+    },
+    {
+      "_id": "req_report_pdf",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/reports/export/pdf",
+      "name": "21 - Exportar PDF",
+      "description": "Exporta todos os relatórios em PDF",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -80
+    },
+    {
+      "_id": "req_user_create",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/users",
+      "name": "22 - Criar Funcionário",
+      "description": "Cria um novo funcionário (requer ADMIN)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Funcionario Estoque\",\n  \"email\": \"funcionario@estoque.com\",\n  \"password\": \"Func@123456\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -79
+    },
+    {
+      "_id": "req_user_list",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/users",
+      "name": "23 - Listar Usuários",
+      "description": "Lista todos os usuários (requer ADMIN)",
+      "method": "GET",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -78
+    },
+    {
+      "_id": "req_audit_list",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "url": "http://localhost:8080/api/v1/audit",
+      "name": "24 - Listar Auditoria",
+      "description": "Lista logs de auditoria (requer ADMIN)",
+      "method": "GET",
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "20"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -77
+    },
+    {
+      "_id": "env_default",
+      "parentId": "fld_main",
+      "modified": 1,
+      "created": 1,
+      "name": "Base Environment",
+      "data": {
+        "token": ""
+      },
+      "dataPropertyOrder": {},
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_main",
+      "parentId": null,
+      "modified": 1,
+      "created": 1,
+      "name": "EstoqueFacil API",
+      "description": "API para gerenciamento de estoque com relatórios e auditoria",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1
+    }
+  ]
+}
