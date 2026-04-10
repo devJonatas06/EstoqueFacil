@@ -1,0 +1,788 @@
+{
+  "info": {
+    "name": "EstoqueFacil API",
+    "description": "API para gerenciamento de estoque com relatórios, auditoria e controle de usuários",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "01 - Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@estoque.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            },
+            "description": "Autentica o usuário e retorna um token JWT"
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Registrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funcionario Teste\",\n  \"email\": \"funcionario@teste.com\",\n  \"password\": \"Func@123456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "register"]
+            },
+            "description": "Registra um novo usuário no sistema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categorias",
+      "item": [
+        {
+          "name": "03 - Criar Categoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Eletrônicos\",\n  \"description\": \"Produtos eletrônicos em geral\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/categories",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Cria uma nova categoria de produto (requer ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Listar Categorias",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/categories",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Retorna todas as categorias ativas"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "05 - Criar Produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Smartphone Galaxy S23\",\n  \"barcode\": \"7891234567890\",\n  \"description\": \"Smartphone 256GB, 8GB RAM\",\n  \"maker\": \"Samsung\",\n  \"costPrice\": 2500.00,\n  \"salePrice\": 3500.00,\n  \"minimumStock\": 10,\n  \"categoryId\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/products",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "products"]
+            },
+            "description": "Cria um novo produto (requer ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Listar Produtos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/products?page=0&size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Retorna lista paginada de produtos ativos"
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Buscar Produto por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/products/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "products", "1"]
+            },
+            "description": "Retorna detalhes de um produto específico"
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Buscar Produto por Código de Barras",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/products/barcode/7891234567890",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "products", "barcode", "7891234567890"]
+            },
+            "description": "Busca produto pelo código de barras"
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Buscar Produtos por Nome",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/products/search?name=Smart",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "products", "search"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "Smart"
+                }
+              ]
+            },
+            "description": "Busca produtos por nome (busca parcial)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estoque",
+      "item": [
+        {
+          "name": "10 - Entrada de Estoque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 100,\n  \"expirationDate\": \"2026-12-31\",\n  \"userId\": 1,\n  \"observation\": \"Compra nota fiscal 12345\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/stock/entry",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "stock", "entry"]
+            },
+            "description": "Registra entrada de produtos (compra)"
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Consultar Estoque Atual",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/stock/current/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "stock", "current", "1"]
+            },
+            "description": "Retorna a quantidade atual em estoque"
+          },
+          "response": []
+        },
+        {
+          "name": "12 - Registrar Saída (Venda)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 10,\n  \"userId\": 1,\n  \"observation\": \"Venda para cliente João\",\n  \"type\": \"SALE\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/stock/exit",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "stock", "exit"]
+            },
+            "description": "Registra saída de produtos (venda)"
+          },
+          "response": []
+        },
+        {
+          "name": "13 - Registrar Saída (Perda)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 2,\n  \"userId\": 1,\n  \"observation\": \"Produto danificado\",\n  \"type\": \"LOSS\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/stock/exit",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "stock", "exit"]
+            },
+            "description": "Registra saída de produtos (perda)"
+          },
+          "response": []
+        },
+        {
+          "name": "14 - Histórico de Movimentações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/stock/movements?page=0&size=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "stock", "movements"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Lista todas as movimentações de estoque"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Relatórios",
+      "item": [
+        {
+          "name": "15 - Resumo de Alertas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/alerts/summary",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "alerts", "summary"]
+            },
+            "description": "Retorna resumo com contadores de alertas"
+          },
+          "response": []
+        },
+        {
+          "name": "16 - Produtos Mais Vendidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/best-sellers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "best-sellers"]
+            },
+            "description": "Ranking dos produtos mais vendidos"
+          },
+          "response": []
+        },
+        {
+          "name": "17 - Produtos Menos Vendidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/worst-sellers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "worst-sellers"]
+            },
+            "description": "Ranking dos produtos menos vendidos"
+          },
+          "response": []
+        },
+        {
+          "name": "18 - Relatório de Lucro",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/profit?start=2024-01-01T00:00:00&end=2026-12-31T23:59:59",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "profit"],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2024-01-01T00:00:00"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-12-31T23:59:59"
+                }
+              ]
+            },
+            "description": "Calcula lucro total no período"
+          },
+          "response": []
+        },
+        {
+          "name": "19 - Relatório de Lucro Detalhado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/profit?start=2024-01-01T00:00:00&end=2026-12-31T23:59:59&includeDetails=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "profit"],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2024-01-01T00:00:00"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-12-31T23:59:59"
+                },
+                {
+                  "key": "includeDetails",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Calcula lucro total com detalhamento por produto"
+          },
+          "response": []
+        },
+        {
+          "name": "20 - Estoque Baixo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/low-stock",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "low-stock"]
+            },
+            "description": "Lista produtos com estoque abaixo do mínimo"
+          },
+          "response": []
+        },
+        {
+          "name": "21 - Produtos Parados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/inactive?days=30",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "inactive"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Lista produtos sem movimentação há X dias"
+          },
+          "response": []
+        },
+        {
+          "name": "22 - Lotes Próximos ao Vencimento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/expiring?days=30",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "expiring"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Lista lotes que vencem nos próximos X dias"
+          },
+          "response": []
+        },
+        {
+          "name": "23 - Exportar PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/reports/export/pdf",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "reports", "export", "pdf"]
+            },
+            "description": "Exporta todos os relatórios em PDF"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuários",
+      "item": [
+        {
+          "name": "24 - Criar Funcionário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funcionario Estoque\",\n  \"email\": \"funcionario@estoque.com\",\n  \"password\": \"Func@123456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Cria um novo funcionário (requer ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "25 - Listar Usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Lista todos os usuários (requer ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "26 - Buscar Usuário por Email",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users/email/funcionario@estoque.com",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "users", "email", "funcionario@estoque.com"]
+            },
+            "description": "Busca usuário por email"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auditoria",
+      "item": [
+        {
+          "name": "27 - Listar Auditoria",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/audit?page=0&size=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "audit"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Lista logs de auditoria (requer ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "28 - Logs por Entidade",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/audit/entity/PRODUCT/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "audit", "entity", "PRODUCT", "1"]
+            },
+            "description": "Busca logs por entidade (requer ADMIN)"
+          },
+          "response": []
+        },
+        {
+          "name": "29 - Logs por Ação",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/audit/action/CREATE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "audit", "action", "CREATE"]
+            },
+            "description": "Busca logs por ação (requer ADMIN)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
