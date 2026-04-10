@@ -13,7 +13,16 @@ SENHA.env
 *.cer
 secrets/
 credentials/
+# Arquivos de ambiente (NUNCA commitar)
+.env
+.env.local
+.env.*.local
+SENHA.env
+*.env
 
+# Arquivo exemplo (este PODE ser commitado)
+!.env.example
+!docker-compose.example.yml
 # ==============================
 # IDE E EDITORES
 # ==============================
@@ -142,4 +151,6 @@ application-secret.properties
 # HELPER FILES
 # ==============================
 HELP.md
-*.md.backup
+*.md.backup.env
+SENHA.env
+docker-compose.local.yml
