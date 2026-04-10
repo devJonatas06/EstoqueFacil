@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -217,12 +218,28 @@ public class ReportServiceImpl implements ReportService {
         return productBatchRepository.getTotalStockByProduct(productId);
     }
 
+    // ReportServiceImpl.java
+
     private LocalDateTime getLastMovementDate(Long productId) {
-        return LocalDateTime.now().minusDays(10);
+        Optional<LocalDateTime> lastMovement = stockMovementRepository
+                .findLastMovementDateByProductId(productId);
+
+        return lastMovement.orElse(null);
     }
 
     private Integer getDaysInactive(Long productId) {
-        return 15;
+        LocalDateTime lastMovement = getLastMovementDate(productId);
+
+        if (lastMovement == null) {
+            // Produto nunca foi vendido - considerar dias desde a criação
+            Product product = productRepository.findById(productId).orElse(null);
+            if (product != null && product.getCreatedAt() != null) {
+                return (int) ChronoUnit.DAYS.between(product.getCreatedAt(), LocalDateTime.now());
+            }
+            return 999;
+        }
+
+        return (int) ChronoUnit.DAYS.between(lastMovement, LocalDateTime.now());
     }
 
     private String getExpiringStatus(LocalDate expirationDate) {
@@ -338,10 +355,27 @@ public class ReportServiceImpl implements ReportService {
         return totalSold / 30;
     }
 
-    private Integer calculateDaysBelowMinimum(Long productId) {
-        return 5;
-    }
 
+    private Integer calculateDaysBelowMinimum(Long productId) {
+
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) return 0;
+
+        Integer currentStock = getCurrentStock(productId);
+        Integer minimumStock = product.getMinimumStock();
+
+        if (currentStock >= minimumStock) {
+            return 0;
+        }
+
+        Optional<LocalDateTime> lastOkDate = stockMovementRepository.findLastDateWhenStockWasOk(productId, minimumStock);
+
+        if (lastOkDate.isPresent()) {
+            return (int) ChronoUnit.DAYS.between(lastOkDate.get(), LocalDateTime.now());
+        }
+
+        return 999;
+    }
     @Override
     public LossReportDTO getLossReport() {
         long startTime = System.currentTimeMillis();

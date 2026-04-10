@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long> {
 
@@ -24,12 +25,13 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
     Page<StockMovement> findByUserId(Long userId, Pageable pageable);
 
     Page<StockMovement> findByBatchProductId(Long productId, Pageable pageable);
+
     @Query("""
-        SELECT sm FROM StockMovement sm
-        WHERE sm.type = :type
-        AND sm.movementDate BETWEEN :start AND :end
-        ORDER BY sm.movementDate DESC
-        """)
+            SELECT sm FROM StockMovement sm
+            WHERE sm.type = :type
+            AND sm.movementDate BETWEEN :start AND :end
+            ORDER BY sm.movementDate DESC
+            """)
     Page<StockMovement> findByTypeAndPeriod(
             @Param("type") StockMovementType type,
             @Param("start") LocalDateTime start,
@@ -38,22 +40,22 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
     );
 
     @Query("""
-        SELECT sm FROM StockMovement sm
-        JOIN FETCH sm.batch b
-        JOIN FETCH b.product
-        WHERE b.product.id = :productId
-        ORDER BY sm.movementDate DESC
-        """)
+            SELECT sm FROM StockMovement sm
+            JOIN FETCH sm.batch b
+            JOIN FETCH b.product
+            WHERE b.product.id = :productId
+            ORDER BY sm.movementDate DESC
+            """)
     List<StockMovement> findFullHistoryByProduct(@Param("productId") Long productId);
 
     // Adicionar no StockMovementRepository.java
 
     @Query("""
-    SELECT sm FROM StockMovement sm
-    WHERE sm.batch.product.id = :productId
-    AND sm.movementDate BETWEEN :start AND :end
-    ORDER BY sm.movementDate DESC
-    """)
+            SELECT sm FROM StockMovement sm
+            WHERE sm.batch.product.id = :productId
+            AND sm.movementDate BETWEEN :start AND :end
+            ORDER BY sm.movementDate DESC
+            """)
     List<StockMovement> findByProductAndPeriod(
             @Param("productId") Long productId,
             @Param("start") LocalDateTime start,
@@ -61,31 +63,53 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
     );
 
     @Query("""
-    SELECT sm.batch.product.id, SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice))
-    FROM StockMovement sm
-    WHERE sm.type = 'SALE'
-    AND sm.movementDate BETWEEN :start AND :end
-    GROUP BY sm.batch.product.id
-    ORDER BY SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) DESC
-    """)
+            SELECT sm.batch.product.id, SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice))
+            FROM StockMovement sm
+            WHERE sm.type = 'SALE'
+            AND sm.movementDate BETWEEN :start AND :end
+            GROUP BY sm.batch.product.id
+            ORDER BY SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) DESC
+            """)
     List<Object[]> findProfitByProduct(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("""
-    SELECT 
-        sm.batch.product.id as productId,
-        sm.batch.product.name as productName,
-        sm.batch.product.barcode as barcode,
-        SUM(sm.quantity) as totalSold,
-        SUM(sm.quantity * sm.batch.product.salePrice) as totalRevenue,
-        SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) as profit
-    FROM StockMovement sm
-    WHERE sm.type = 'SALE'
-    GROUP BY sm.batch.product.id, sm.batch.product.name, sm.batch.product.barcode
-    ORDER BY totalSold DESC
-    """)
+            SELECT 
+                sm.batch.product.id as productId,
+                sm.batch.product.name as productName,
+                sm.batch.product.barcode as barcode,
+                SUM(sm.quantity) as totalSold,
+                SUM(sm.quantity * sm.batch.product.salePrice) as totalRevenue,
+                SUM(sm.quantity * (sm.batch.product.salePrice - sm.batch.product.costPrice)) as profit
+            FROM StockMovement sm
+            WHERE sm.type = 'SALE'
+            GROUP BY sm.batch.product.id, sm.batch.product.name, sm.batch.product.barcode
+            ORDER BY totalSold DESC
+            """)
     List<Object[]> findBestSellingProducts();
 
+    @Query("""
+            SELECT MAX(sm.movementDate) 
+            FROM StockMovement sm 
+            WHERE sm.batch.product.id = :productId 
+            AND sm.type = 'SALE'
+            """)
+    Optional<LocalDateTime> findLastMovementDateByProductId(@Param("productId") Long productId);
 
-
+    @Query("""
+            SELECT MAX(sm.movementDate) 
+            FROM StockMovement sm 
+            WHERE sm.batch.product.id = :productId 
+            AND (
+                SELECT COALESCE(SUM(b2.quantity), 0) 
+                FROM ProductBatch b2 
+                WHERE b2.product.id = :productId 
+                AND b2.active = true
+                AND b2.entryDate <= sm.movementDate
+            ) >= :minimumStock
+            """)
+    Optional<LocalDateTime> findLastDateWhenStockWasOk(
+            @Param("productId") Long productId,
+            @Param("minimumStock") Integer minimumStock
+    );
 
 }
