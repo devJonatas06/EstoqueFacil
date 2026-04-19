@@ -22,21 +22,13 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'maven'
 
-      - name: Verificar pom.xml
-        run: cat pom.xml | grep -A 5 "java-jwt"
+      - name: Clear Maven cache (fix for JWT dependency)
+        run: rm -rf ~/.m2/repository/com/auth0
 
-      - name: Limpar tudo e baixar dependências
-        run: |
-          rm -rf ~/.m2/repository
-          mvn dependency:purge-local-repository
-          mvn dependency:resolve -U
-
-      - name: Compilar e testar dependência específica
-        run: mvn dependency:get -Dartifact=com.auth0:java-jwt:4.4.0
-
-      - name: Build do projeto
-        run: mvn clean package -DskipTests -X
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
 
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest .
