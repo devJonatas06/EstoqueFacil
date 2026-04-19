@@ -22,13 +22,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'maven'
 
-      - name: Clear Maven cache (fix for JWT dependency)
-        run: rm -rf ~/.m2/repository/com/auth0
+      - name: Clear ALL Maven cache
+        run: rm -rf ~/.m2/repository
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      - name: Build with Maven (no cache)
+        run: mvn clean package -DskipTests -U
 
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest .
