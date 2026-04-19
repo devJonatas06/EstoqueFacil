@@ -23,6 +23,9 @@ jobs:
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '21'
+    - name: Clean Maven cache
+      run: rm -rf ~/.m2/repository/com/auth0
+
     - name: Build JAR com Maven
       run: mvn clean package -DskipTests
 
