@@ -5,7 +5,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 ![Docker](https://img.shields.io/badge/Docker-ready-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
-
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/devJonatas06/EstoqueFacil/actions)
 Sistema de gestão de estoque para controle de produtos, movimentações de entrada e saída, gerenciamento de lotes com data de validade, relatórios gerenciais e auditoria completa de operações.
 
 ---
@@ -31,6 +31,7 @@ API REST para controle de estoque que permite gerenciar produtos, categorias, mo
 |------------|--------|------------|
 | Java | 21 | Linguagem principal |
 | Spring Boot | 3.5.11 | Framework principal |
+ GitHub Actions | - | CI/CD Pipeline |
 | Spring Security | - | Autenticação e autorização |
 | Spring Data JPA | - | Acesso a dados |
 | PostgreSQL | 15 | Banco de dados |
@@ -42,6 +43,26 @@ API REST para controle de estoque que permite gerenciar produtos, categorias, mo
 | Lombok | - | Redução de boilerplate |
 
 ---
+## CI/CD Pipeline
+
+Este projeto utiliza GitHub Actions para Integração Contínua e Entrega Contínua.
+
+### O que acontece automaticamente ao fazer push na branch `main`:
+
+| Etapa | Ação |
+|-------|------|
+| 1 | Compilação do código Java com Maven |
+| 2 | Execução dos testes automatizados |
+| 3 | Geração do arquivo `.jar` |
+| 4 | Build da imagem Docker |
+| 5 | Push da imagem para o Docker Hub |
+
+### Imagem Docker
+
+```bash
+docker pull jonatadevsuario/estoquefacil-api:latest
+docker run -p 8080:8080 jonatadev/estoquefacil-api:latest
+```
 
 ## Como Rodar o Projeto
 
@@ -373,7 +394,7 @@ Você pode importar a coleção completa do Insomnia/Postman para testar todos o
 - JWT stateless para autenticação
 - Soft delete (desativação lógica) para produtos, categorias e usuários
 ---
-## Roadmap
+## Roadmap futuro
 
 - [ ] Dashboard com gráficos e métricas em tempo real
 - [ ] Exportação de relatórios em Excel
