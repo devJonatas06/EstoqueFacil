@@ -87,29 +87,29 @@ public class AuditServiceImpl implements AuditService {
                 .map(this::toResponseDTO);
     }
 
-    private AuditLogResponseDTO toResponseDTO(AuditLog log) {
+    private AuditLogResponseDTO toResponseDTO(AuditLog auditLog) {
         return AuditLogResponseDTO.builder()
-                .id(log.getId())
-                .action(log.getAction())
-                .entityType(log.getEntityType())
-                .entityId(log.getEntityId())
-                .userId(log.getUserId())
-                .userEmail(log.getUserEmail())
-                .oldValue(log.getOldValue())
-                .newValue(log.getNewValue())
-                .details(log.getDetails())
-                .timestamp(log.getTimestamp())
+                .id(auditLog.getId())
+                .action(auditLog.getAction())
+                .entityType(auditLog.getEntityType())
+                .entityId(auditLog.getEntityId())
+                .userId(auditLog.getUserId())
+                .userEmail(auditLog.getUserEmail())
+                .oldValue(auditLog.getOldValue())
+                .newValue(auditLog.getNewValue())
+                .details(auditLog.getDetails())
+                .timestamp(auditLog.getTimestamp())
                 .build();
     }
 
     public void recordAction(String email, String action) {
         try {
-            AuditLog log = new AuditLog();
-            log.setUserEmail(email);
-            log.setAction(action);
-            log.setEntityType("AUTH");
-            log.setTimestamp(LocalDateTime.now());
-            auditLogRepository.save(log);
+            AuditLog auditLog = new AuditLog();
+            auditLog.setUserEmail(email);
+            auditLog.setAction(action);
+            auditLog.setEntityType("AUTH");
+            auditLog.setTimestamp(LocalDateTime.now());
+            auditLogRepository.save(auditLog);
             log.info("Auditoria - Ação registrada: {} para usuário: {}", action, email);
         } catch (Exception e) {
             log.error("Erro ao salvar auditoria de ação: {}", e.getMessage(), e);
