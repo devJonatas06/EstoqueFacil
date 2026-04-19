@@ -23,10 +23,20 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Download dependencies and build
+      - name: Verificar pom.xml
+        run: cat pom.xml | grep -A 5 "java-jwt"
+
+      - name: Limpar tudo e baixar dependências
         run: |
-          mvn clean compile -U
-          mvn package -DskipTests
+          rm -rf ~/.m2/repository
+          mvn dependency:purge-local-repository
+          mvn dependency:resolve -U
+
+      - name: Compilar e testar dependência específica
+        run: mvn dependency:get -Dartifact=com.auth0:java-jwt:4.4.0
+
+      - name: Build do projeto
+        run: mvn clean package -DskipTests -X
 
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest .
