@@ -30,8 +30,13 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
+
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest .
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:build-${{ github.run_number }} .
 
       - name: Push to Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/estoquefacil-api:build-${{ github.run_number }}
