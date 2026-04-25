@@ -119,7 +119,7 @@ class AuthServiceTest {
         when(roleRepository.findByName("ROLE_EMPLOYEE"))
                 .thenReturn(Optional.of(employeeRole));
 
-        when(passwordEncoder.encode("Password@123"))
+        when(passwordEncoder.encode(anyString()))
                 .thenReturn("encodedPassword");
 
         when(tokenService.generateToken(any(User.class)))
