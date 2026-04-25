@@ -1,0 +1,10 @@
+FROM maven:3.9-eclipse-temurin-21-alpine AS test
+
+WORKDIR /app
+
+# Copiar apenas o necessário
+COPY pom.xml .
+COPY src ./src
+
+# Executar testes com volume cache
+CMD ["mvn", "test", "-B"]
