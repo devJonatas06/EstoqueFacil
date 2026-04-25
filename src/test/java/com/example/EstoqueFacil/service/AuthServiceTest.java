@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -130,16 +131,28 @@ class AuthServiceTest {
         // Act
         ResponseDto response = authService.register(request);
 
-        // Assert
+        // Assert (resposta)
         assertThat(response.token()).isEqualTo("jwt-token");
         assertThat(response.name()).isEqualTo("Novo User");
 
-        verify(userRepository).save(any(User.class));
+        // 🔥 CAPTURANDO O USUÁRIO SALVO
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+
+        User savedUser = userCaptor.getValue();
+
+        // 🔍 ASSERTS REAIS (isso aqui te diferencia)
+        assertThat(savedUser.getEmail()).isEqualTo("novo@teste.com");
+        assertThat(savedUser.getName()).isEqualTo("Novo User");
+        assertThat(savedUser.getPassword()).isEqualTo("encodedPassword");
+        assertThat(savedUser.isActive()).isTrue();
+        assertThat(savedUser.getRoles()).contains(employeeRole);
+
+        // Verificações adicionais
         verify(passwordStrengthValidator).validate("Password@123");
         verify(auditService).recordAction("novo@teste.com", "REGISTER_NEW_USER");
-        verify(tokenService).generateToken(any(User.class)); // 👈 importante
+        verify(tokenService).generateToken(any(User.class));
     }
-
     @Test
     @DisplayName("Deve lançar exceção ao registrar com email duplicado")
     void shouldThrowExceptionWhenDuplicateEmail() {
