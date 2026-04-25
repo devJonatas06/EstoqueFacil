@@ -109,8 +109,9 @@ class AuthServiceTest {
 
         when(userRepository.findByEmail("novo@teste.com")).thenReturn(Optional.empty());
         when(roleRepository.findByName("ROLE_EMPLOYEE")).thenReturn(Optional.of(employeeRole));
-        when(passwordEncoder.encode("Password@123")).thenReturn("encoded");
-        doReturn("jwt-token").when(tokenService).generateToken(any(User.class));
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(tokenService.generateToken(any(User.class))).thenReturn("jwt-token");
+        doNothing().when(passwordStrengthValidator).validate(anyString());
 
         ResponseDto response = authService.register(registerRequest);
 
