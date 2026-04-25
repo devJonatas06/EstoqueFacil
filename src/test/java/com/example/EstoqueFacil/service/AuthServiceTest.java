@@ -105,20 +105,39 @@ class AuthServiceTest {
     @Test
     @DisplayName("Deve registrar novo usuário com sucesso")
     void shouldRegisterSuccessfully() {
-        RegisterRequestDto registerRequest = new RegisterRequestDto("Novo User", "novo@teste.com", "Password@123");
+        // Arrange
+        RegisterRequestDto request = new RegisterRequestDto(
+                "Novo User",
+                "novo@teste.com",
+                "Password@123"
+        );
 
-        when(userRepository.findByEmail("novo@teste.com")).thenReturn(Optional.empty());
-        when(roleRepository.findByName("ROLE_EMPLOYEE")).thenReturn(Optional.of(employeeRole));
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(tokenService.generateToken(any(User.class))).thenReturn("jwt-token");
-        doNothing().when(passwordStrengthValidator).validate(anyString());
+        when(userRepository.findByEmail("novo@teste.com"))
+                .thenReturn(Optional.empty());
 
-        ResponseDto response = authService.register(registerRequest);
+        when(roleRepository.findByName("ROLE_EMPLOYEE"))
+                .thenReturn(Optional.of(employeeRole));
 
+        when(passwordEncoder.encode("Password@123"))
+                .thenReturn("encodedPassword");
+
+        when(tokenService.generateToken(any(User.class)))
+                .thenReturn("jwt-token");
+
+        doNothing().when(passwordStrengthValidator)
+                .validate("Password@123");
+
+        // Act
+        ResponseDto response = authService.register(request);
+
+        // Assert
         assertThat(response.token()).isEqualTo("jwt-token");
-        verify(userRepository, times(1)).save(any(User.class));
+        assertThat(response.name()).isEqualTo("Novo User");
+
+        verify(userRepository).save(any(User.class));
         verify(passwordStrengthValidator).validate("Password@123");
         verify(auditService).recordAction("novo@teste.com", "REGISTER_NEW_USER");
+        verify(tokenService).generateToken(any(User.class)); // 👈 importante
     }
 
     @Test
