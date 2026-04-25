@@ -29,20 +29,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private RoleRepository roleRepository;
-    @Mock
-    private PasswordEncoder passwordEncoder;
-    @Mock
-    private TokenService tokenService;
-    @Mock
-    private LoginAttemptService loginAttemptService;
-    @Mock
-    private PasswordStrengthValidator passwordStrengthValidator;
-    @Mock
-    private AuditServiceImpl auditService;
+    @Mock private UserRepository userRepository;
+    @Mock private RoleRepository roleRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private TokenService tokenService;
+    @Mock private LoginAttemptService loginAttemptService;
+    @Mock private PasswordStrengthValidator passwordStrengthValidator;
+    @Mock private AuditServiceImpl auditService;
 
     @InjectMocks
     private AuthService authService;
@@ -117,7 +110,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail("novo@teste.com")).thenReturn(Optional.empty());
         when(roleRepository.findByName("ROLE_EMPLOYEE")).thenReturn(Optional.of(employeeRole));
         when(passwordEncoder.encode("Password@123")).thenReturn("encoded");
-        when(tokenService.generateToken(any(User.class))).thenReturn("jwt-token");
+        doReturn("jwt-token").when(tokenService).generateToken(any(User.class));
 
         ResponseDto response = authService.register(registerRequest);
 
