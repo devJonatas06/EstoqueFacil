@@ -7,3 +7,4 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['estoquefacil-app:8080']
+
