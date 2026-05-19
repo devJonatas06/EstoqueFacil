@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <provider class="net.logstash.logback.encoder.MdcProvider"/>
+        </encoder>
+    </appender>
+
+    <!-- Níveis por pacote -->
+    <logger name="com.estoque.controller" level="INFO"/>
+    <logger name="com.estoque.service" level="DEBUG"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="JSON"/>
+    </root>
+</configuration>
