@@ -13,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-
+@Component
 public class CorrelationIdFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(CorrelationIdFilter.class);

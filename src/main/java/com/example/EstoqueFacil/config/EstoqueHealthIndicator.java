@@ -4,6 +4,7 @@ import com.example.EstoqueFacil.entity.ProductBatch;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class EstoqueHealthIndicator implements HealthIndicator {
     @Autowired
     private StockMovementRepository stockMovementRepository;
 
+    @Autowired
+    private MeterRegistry meterRegistry;
+
     @Override
     public Health health() {
         try {
@@ -37,7 +41,12 @@ public class EstoqueHealthIndicator implements HealthIndicator {
             long lotesVencidos = countExpiredBatches();
             long diasSemMovimentacao = daysSinceLastMovement();
 
-            // Caso 1: Múltiplos problemas críticos
+            // Registrar métricas para o Prometheus
+            meterRegistry.gauge("estoque.produtos.ativos", countActiveProducts());
+            meterRegistry.gauge("estoque.produtos.baixo", produtosComEstoqueBaixo);
+            meterRegistry.gauge("estoque.lotes.vencidos", lotesVencidos);
+            meterRegistry.gauge("estoque.dias.sem.movimentacao", diasSemMovimentacao);
+
             if (produtosComEstoqueBaixo > 10 && lotesVencidos > 0) {
                 return Health.down()
                         .withDetail("status", "CRITICAL")
@@ -48,7 +57,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .build();
             }
 
-            // Caso 2: Estoque crítico (>10 produtos)
             if (produtosComEstoqueBaixo > 10) {
                 return Health.down()
                         .withDetail("status", "CRITICAL")
@@ -58,7 +66,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .build();
             }
 
-            // Caso 3: Lotes vencidos
             if (lotesVencidos > 0) {
                 return Health.down()
                         .withDetail("status", "CRITICAL")
@@ -68,7 +75,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .build();
             }
 
-            // Caso 4: Degradado (estoque baixo mas não crítico)
             if (produtosComEstoqueBaixo > 0) {
                 return Health.status("DEGRADED")
                         .withDetail("status", "DEGRADED")
@@ -78,7 +84,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .build();
             }
 
-            // Caso 5: Tudo saudável
             return Health.up()
                     .withDetail("status", "HEALTHY")
                     .withDetail("produtos_ativos", countActiveProducts())
@@ -127,7 +132,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
 
     private long daysSinceLastMovement() {
         try {
-            // Busca a última movimentação de SALE nos últimos 30 dias
             LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
             var lastMovements = stockMovementRepository.findByTypeAndPeriod(
                     com.example.EstoqueFacil.entity.StockMovementType.SALE,
@@ -141,7 +145,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                 long days = java.time.Duration.between(lastMovement, LocalDateTime.now()).toDays();
                 return Math.max(days, 0);
             }
-            return 30; // Sem movimentação nos últimos 30 dias
+            return 30;
         } catch (Exception e) {
             log.warn("Não foi possível calcular dias sem movimentação: {}", e.getMessage());
             return -1;
