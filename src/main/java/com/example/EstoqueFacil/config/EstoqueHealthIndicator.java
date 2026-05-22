@@ -43,7 +43,12 @@ public class EstoqueHealthIndicator implements HealthIndicator {
             long lotesProximosVencimento = countExpiringBatches(7);
             long diasSemMovimentacao = daysSinceLastMovement();
             long produtosSemMovimentacao = countProductsWithoutMovement(30);
-            double lucroEstimado = calculateEstimatedProfit(LocalDateTime.now().minusDays(30), LocalDateTime.now());
+            double lucroEstimadoMes = calculateEstimatedProfit(LocalDateTime.now().minusDays(30), LocalDateTime.now());
+
+            // ===== NOVAS MÉTRICAS =====
+            long produtosVendidosHoje = countProductsSoldToday();
+            double lucroEstimadoDia = calculateEstimatedProfit(LocalDateTime.now().minusDays(1), LocalDateTime.now());
+            List<Object[]> produtosMaisVendidos = stockMovementRepository.findBestSellingProducts();
 
             // Registrar métricas para o Prometheus
             meterRegistry.gauge("estoque.produtos.ativos", countActiveProducts());
@@ -52,7 +57,12 @@ public class EstoqueHealthIndicator implements HealthIndicator {
             meterRegistry.gauge("estoque.lotes.proximos.vencer", lotesProximosVencimento);
             meterRegistry.gauge("estoque.dias.sem.movimentacao", diasSemMovimentacao);
             meterRegistry.gauge("estoque.produtos.parados", produtosSemMovimentacao);
-            meterRegistry.gauge("estoque.lucro.estimado.mes", lucroEstimado);
+            meterRegistry.gauge("estoque.lucro.estimado.mes", lucroEstimadoMes);
+
+            // ===== NOVAS MÉTRICAS PARA PROMETHEUS =====
+            meterRegistry.gauge("estoque.vendas.diarias", produtosVendidosHoje);
+            meterRegistry.gauge("estoque.lucro.diario", lucroEstimadoDia);
+            meterRegistry.gauge("estoque.total.produtos.vendidos", produtosVendidosHoje);
 
             // 🔴 CRÍTICO: Lotes vencidos
             if (lotesVencidos > 0) {
@@ -61,6 +71,8 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("lotes_vencidos", lotesVencidos)
                         .withDetail("produtos_estoque_baixo", produtosComEstoqueBaixo)
                         .withDetail("lotes_proximos_vencer", lotesProximosVencimento)
+                        .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
+                        .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
                         .withDetail("mensagem", "⚠️ Existem lotes VENCIDOS no sistema! Ação imediata necessária.")
                         .build();
             }
@@ -71,6 +83,8 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("status", "WARNING")
                         .withDetail("lotes_proximos_vencer", lotesProximosVencimento)
                         .withDetail("lotes_vencidos", lotesVencidos)
+                        .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
+                        .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
                         .withDetail("mensagem", "⚠️ Existem lotes que vencem nos próximos 7 dias!")
                         .build();
             }
@@ -81,6 +95,8 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("status", "CRITICAL")
                         .withDetail("produtos_estoque_baixo", produtosComEstoqueBaixo)
                         .withDetail("produtos_parados", produtosSemMovimentacao)
+                        .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
+                        .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
                         .withDetail("mensagem", "⚠️ Mais de 10 produtos com estoque abaixo do mínimo!")
                         .build();
             }
@@ -91,6 +107,8 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("status", "DEGRADED")
                         .withDetail("produtos_estoque_baixo", produtosComEstoqueBaixo)
                         .withDetail("produtos_parados", produtosSemMovimentacao)
+                        .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
+                        .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
                         .withDetail("mensagem", "📦 Existem produtos com estoque abaixo do mínimo")
                         .build();
             }
@@ -101,6 +119,8 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("status", "DEGRADED")
                         .withDetail("produtos_parados", produtosSemMovimentacao)
                         .withDetail("dias_sem_movimentacao", diasSemMovimentacao)
+                        .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
+                        .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
                         .withDetail("mensagem", "📦 Existem produtos sem movimentação há mais de 30 dias")
                         .build();
             }
@@ -114,7 +134,10 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                     .withDetail("lotes_proximos_vencer", 0)
                     .withDetail("dias_sem_movimentacao", diasSemMovimentacao)
                     .withDetail("produtos_parados", 0)
-                    .withDetail("lucro_estimado_mes", String.format("R$ %.2f", lucroEstimado))
+                    .withDetail("lucro_estimado_mes", String.format("R$ %.2f", lucroEstimadoMes))
+                    .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
+                    .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
+                    .withDetail("top_3_produtos_mais_vendidos", formatTopProducts(produtosMaisVendidos))
                     .withDetail("mensagem", "✅ Estoque saudável. Todos os indicadores dentro da normalidade.")
                     .build();
 
@@ -126,6 +149,8 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                     .build();
         }
     }
+
+    // ===== MÉTODOS EXISTENTES =====
 
     private long countProductsWithLowStock() {
         try {
@@ -209,5 +234,54 @@ public class EstoqueHealthIndicator implements HealthIndicator {
             log.warn("Não foi possível calcular lucro estimado: {}", e.getMessage());
             return 0;
         }
+    }
+
+    // ===== NOVOS MÉTODOS =====
+
+    /**
+     * Conta quantos produtos foram vendidos hoje
+     */
+    private long countProductsSoldToday() {
+        try {
+            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+            LocalDateTime endOfDay = startOfDay.plusDays(1);
+
+            var movements = stockMovementRepository.findByTypeAndPeriod(
+                    StockMovementType.SALE,
+                    startOfDay,
+                    endOfDay,
+                    Pageable.unpaged()
+            );
+
+            return movements.stream()
+                    .mapToLong(m -> m.getQuantity())
+                    .sum();
+        } catch (Exception e) {
+            log.warn("Não foi possível contar produtos vendidos hoje: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Formata os top 3 produtos mais vendidos
+     */
+    private String formatTopProducts(List<Object[]> bestSellers) {
+        if (bestSellers == null || bestSellers.isEmpty()) {
+            return "Nenhum produto vendido ainda";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        int limit = Math.min(3, bestSellers.size());
+
+        for (int i = 0; i < limit; i++) {
+            Object[] product = bestSellers.get(i);
+            String name = (String) product[1];
+            Long quantity = ((Number) product[3]).longValue();
+
+            if (i > 0) sb.append(" | ");
+            sb.append(String.format("%dº: %s (%d unidades)", i + 1, name, quantity));
+        }
+
+        return sb.toString();
     }
 }
