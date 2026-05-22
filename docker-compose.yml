@@ -7,6 +7,7 @@ services:
     env_file:
       - .env
     environment:
+      - SPRING_APPLICATION_NAME=estoque-facil
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/EstoqueFacil
       - SPRING_DATASOURCE_USERNAME=postgres

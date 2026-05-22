@@ -34,7 +34,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+          String path = request.getRequestURI();
 
         if (path.startsWith("/auth") ||
                 path.startsWith("/v3/api-docs") ||

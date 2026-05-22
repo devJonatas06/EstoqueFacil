@@ -23,7 +23,7 @@ import java.util.Set;
 public class AuthService {
 
     private final UserRepository repository;
-    private final RoleRepository roleRepository;  // ✅ ADICIONAR
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final LoginAttemptService loginAttemptService;
@@ -69,7 +69,7 @@ public class AuthService {
         newUser.setName(body.name());
         newUser.setPassword(passwordEncoder.encode(body.password()));
         newUser.setActive(true);
-        newUser.setRoles(Set.of(employeeRole));  // ✅ ADICIONAR ROLE
+        newUser.setRoles(Set.of(employeeRole));
 
         repository.save(newUser);
         auditService.recordAction(newUser.getEmail(), "REGISTER_NEW_USER");
