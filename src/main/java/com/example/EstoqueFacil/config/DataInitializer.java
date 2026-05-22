@@ -4,6 +4,7 @@ import com.example.EstoqueFacil.entity.Role;
 import com.example.EstoqueFacil.entity.User;
 import com.example.EstoqueFacil.repository.RoleRepository;
 import com.example.EstoqueFacil.repository.UserRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -23,6 +24,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final Environment env;
+    private final MeterRegistry meterRegistry;  // ← ADICIONAR ESTA LINHA
 
     @Override
     @Transactional
@@ -64,5 +66,11 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("✅ Admin já existe e já tem a role ROLE_ADMIN. Email: {}", adminEmail);
             }
         }
+
+        meterRegistry.gauge("app.admin.existente", admin, u -> u != null && u.getId() != null ? 1 : 0);
+        meterRegistry.gauge("app.roles.total", roleRepository, r -> (int) r.count());
+
+        log.info("📊 Métricas registradas: app.admin.existente={}, app.roles.total={}",
+                admin != null && admin.getId() != null ? 1 : 0, roleRepository.count());
     }
 }
