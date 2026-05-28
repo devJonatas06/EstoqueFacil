@@ -11,14 +11,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
+@Lazy
 public class EstoqueHealthIndicator implements HealthIndicator {
 
     private static final Logger log = LoggerFactory.getLogger(EstoqueHealthIndicator.class);
@@ -35,34 +39,102 @@ public class EstoqueHealthIndicator implements HealthIndicator {
     @Autowired
     private MeterRegistry meterRegistry;
 
+    // ===== CACHES SEPARADOS =====
+    private final ConcurrentHashMap<String, CachedValue> cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CachedBestSellers> bestSellersCache = new ConcurrentHashMap<>();
+    private static final long CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(5);
+
+    private static class CachedValue {
+        final long value;
+        final long timestamp;
+
+        CachedValue(long value) {
+            this.value = value;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() - timestamp > CACHE_TTL_MS;
+        }
+    }
+
+    private static class CachedBestSellers {
+        final List<Object[]> value;
+        final long timestamp;
+
+        CachedBestSellers(List<Object[]> value) {
+            this.value = value;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(2);
+        }
+    }
+
+    private long getCachedOrCompute(String key, CacheableSupplier supplier) {
+        CachedValue cached = cache.get(key);
+        if (cached != null && !cached.isExpired()) {
+            return cached.value;
+        }
+
+        long newValue = supplier.get();
+        cache.put(key, new CachedValue(newValue));
+        return newValue;
+    }
+
+    private List<Object[]> getCachedBestSellers() {
+        CachedBestSellers cached = bestSellersCache.get("produtos_mais_vendidos");
+        if (cached != null && !cached.isExpired()) {
+            return cached.value;
+        }
+
+        List<Object[]> bestSellers = stockMovementRepository.findBestSellingProducts();
+        bestSellersCache.put("produtos_mais_vendidos", new CachedBestSellers(bestSellers));
+        return bestSellers;
+    }
+
+    @FunctionalInterface
+    private interface CacheableSupplier {
+        long get();
+    }
+
     @Override
     public Health health() {
         try {
-            long produtosComEstoqueBaixo = countProductsWithLowStock();
-            long lotesVencidos = countExpiredBatches();
-            long lotesProximosVencimento = countExpiringBatches(7);
-            long diasSemMovimentacao = daysSinceLastMovement();
-            long produtosSemMovimentacao = countProductsWithoutMovement(30);
-            double lucroEstimadoMes = calculateEstimatedProfit(LocalDateTime.now().minusDays(30), LocalDateTime.now());
+            long startTime = System.currentTimeMillis();
 
-            // ===== NOVAS MÉTRICAS =====
+            // Com cache - queries pesadas
+            long produtosComEstoqueBaixo = getCachedOrCompute("produtos_estoque_baixo", this::countProductsWithLowStock);
+            long lotesVencidos = getCachedOrCompute("lotes_vencidos", this::countExpiredBatches);
+            long lotesProximosVencimento = getCachedOrCompute("lotes_proximos_vencer", () -> countExpiringBatches(7));
+            long diasSemMovimentacao = getCachedOrCompute("dias_sem_movimentacao", this::daysSinceLastMovement);
+            long produtosSemMovimentacao = getCachedOrCompute("produtos_sem_movimentacao", () -> countProductsWithoutMovement(30));
+            long produtosAtivos = getCachedOrCompute("produtos_ativos", this::countActiveProducts);
+
+            // Sem cache - queries leves (executam toda vez)
             long produtosVendidosHoje = countProductsSoldToday();
             double lucroEstimadoDia = calculateEstimatedProfit(LocalDateTime.now().minusDays(1), LocalDateTime.now());
-            List<Object[]> produtosMaisVendidos = stockMovementRepository.findBestSellingProducts();
+            double lucroEstimadoMes = calculateEstimatedProfit(LocalDateTime.now().minusDays(30), LocalDateTime.now());
+
+            // Top produtos com cache separado
+            List<Object[]> produtosMaisVendidos = getCachedBestSellers();
 
             // Registrar métricas para o Prometheus
-            meterRegistry.gauge("estoque.produtos.ativos", countActiveProducts());
+            meterRegistry.gauge("estoque.produtos.ativos", produtosAtivos);
             meterRegistry.gauge("estoque.produtos.baixo", produtosComEstoqueBaixo);
             meterRegistry.gauge("estoque.lotes.vencidos", lotesVencidos);
             meterRegistry.gauge("estoque.lotes.proximos.vencer", lotesProximosVencimento);
             meterRegistry.gauge("estoque.dias.sem.movimentacao", diasSemMovimentacao);
             meterRegistry.gauge("estoque.produtos.parados", produtosSemMovimentacao);
             meterRegistry.gauge("estoque.lucro.estimado.mes", lucroEstimadoMes);
-
-            // ===== NOVAS MÉTRICAS PARA PROMETHEUS =====
             meterRegistry.gauge("estoque.vendas.diarias", produtosVendidosHoje);
             meterRegistry.gauge("estoque.lucro.diario", lucroEstimadoDia);
-            meterRegistry.gauge("estoque.total.produtos.vendidos", produtosVendidosHoje);
+
+            long duration = System.currentTimeMillis() - startTime;
+            if (duration > 1000) {
+                log.warn("⚠️ Health check lento: {}ms", duration);
+            }
 
             // 🔴 CRÍTICO: Lotes vencidos
             if (lotesVencidos > 0) {
@@ -73,6 +145,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("lotes_proximos_vencer", lotesProximosVencimento)
                         .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
                         .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
+                        .withDetail("tempo_health_ms", duration)
                         .withDetail("mensagem", "⚠️ Existem lotes VENCIDOS no sistema! Ação imediata necessária.")
                         .build();
             }
@@ -85,6 +158,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("lotes_vencidos", lotesVencidos)
                         .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
                         .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
+                        .withDetail("tempo_health_ms", duration)
                         .withDetail("mensagem", "⚠️ Existem lotes que vencem nos próximos 7 dias!")
                         .build();
             }
@@ -97,6 +171,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("produtos_parados", produtosSemMovimentacao)
                         .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
                         .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
+                        .withDetail("tempo_health_ms", duration)
                         .withDetail("mensagem", "⚠️ Mais de 10 produtos com estoque abaixo do mínimo!")
                         .build();
             }
@@ -109,6 +184,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("produtos_parados", produtosSemMovimentacao)
                         .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
                         .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
+                        .withDetail("tempo_health_ms", duration)
                         .withDetail("mensagem", "📦 Existem produtos com estoque abaixo do mínimo")
                         .build();
             }
@@ -121,6 +197,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                         .withDetail("dias_sem_movimentacao", diasSemMovimentacao)
                         .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
                         .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
+                        .withDetail("tempo_health_ms", duration)
                         .withDetail("mensagem", "📦 Existem produtos sem movimentação há mais de 30 dias")
                         .build();
             }
@@ -128,7 +205,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
             // 🟢 TUDO SAUDÁVEL
             return Health.up()
                     .withDetail("status", "HEALTHY")
-                    .withDetail("produtos_ativos", countActiveProducts())
+                    .withDetail("produtos_ativos", produtosAtivos)
                     .withDetail("produtos_estoque_baixo", 0)
                     .withDetail("lotes_vencidos", 0)
                     .withDetail("lotes_proximos_vencer", 0)
@@ -138,6 +215,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
                     .withDetail("produtos_vendidos_hoje", produtosVendidosHoje)
                     .withDetail("lucro_estimado_dia", String.format("R$ %.2f", lucroEstimadoDia))
                     .withDetail("top_3_produtos_mais_vendidos", formatTopProducts(produtosMaisVendidos))
+                    .withDetail("tempo_health_ms", duration)
                     .withDetail("mensagem", "✅ Estoque saudável. Todos os indicadores dentro da normalidade.")
                     .build();
 
@@ -150,7 +228,7 @@ public class EstoqueHealthIndicator implements HealthIndicator {
         }
     }
 
-    // ===== MÉTODOS EXISTENTES =====
+    // ===== MÉTODOS ORIGINAIS (SEM CACHE) =====
 
     private long countProductsWithLowStock() {
         try {
@@ -236,11 +314,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
         }
     }
 
-    // ===== NOVOS MÉTODOS =====
-
-    /**
-     * Conta quantos produtos foram vendidos hoje
-     */
     private long countProductsSoldToday() {
         try {
             LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
@@ -262,9 +335,6 @@ public class EstoqueHealthIndicator implements HealthIndicator {
         }
     }
 
-    /**
-     * Formata os top 3 produtos mais vendidos
-     */
     private String formatTopProducts(List<Object[]> bestSellers) {
         if (bestSellers == null || bestSellers.isEmpty()) {
             return "Nenhum produto vendido ainda";
