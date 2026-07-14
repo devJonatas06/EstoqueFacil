@@ -61,7 +61,11 @@ public class PasswordStrengthValidator {
         for (String weak : weakPasswords) {
             if (lowerPass.startsWith(weak) && lowerPass.length() > weak.length()) {
                 String suffix = lowerPass.substring(weak.length());
-                if (suffix.matches("\\d+") || suffix.matches("^[!@#$%^&*()]+$")) {
+
+                
+                String cleanSuffix = suffix.trim();
+
+                if (cleanSuffix.matches("\\d+") || cleanSuffix.matches("^[!@#$%^&*()]+$")) {
                     return true;
                 }
             }
