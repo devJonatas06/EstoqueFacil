@@ -29,7 +29,6 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
 
         String incomingCorrelationId = request.getHeader(CORRELATION_ID_HEADER);
         String correlationId;
-
         if (incomingCorrelationId == null || incomingCorrelationId.isBlank()) {
             // Primeiro serviço da cadeia: gera novo ID
             correlationId = serviceName + "_" + UUID.randomUUID();

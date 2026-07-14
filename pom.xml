@@ -147,21 +147,73 @@
 				<version>${jacoco.version}</version>
 				<executions>
 					<execution>
-						<id>default-prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
 					<execution>
-						<id>default-report</id>
-						<phase>test</phase>
+						<id>report</id>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>PACKAGE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.80</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+							<excludes>
+								<!-- Exclui pacotes de specifications -->
+								<exclude>**/specification/**</exclude>
+								<exclude>**/specifications/**</exclude>
+
+								<!-- Exclui pacotes de mappers -->
+								<exclude>**/mapper/**</exclude>
+								<exclude>**/mappers/**</exclude>
+
+								<!-- Exclui pacotes de config -->
+								<exclude>**/config/**</exclude>
+								<exclude>**/configuration/**</exclude>
+
+								<!-- Exclui pacotes de repository -->
+								<exclude>**/repository/**</exclude>
+								<exclude>**/repositories/**</exclude>
+
+								<!-- Exclui classes específicas que não precisam de teste -->
+								<exclude>**/EstoqueFacilApplication.class</exclude>
+								<exclude>**/*Application.class</exclude>
+
+								<!-- Exclui DTOs e Models se necessário -->
+								<exclude>**/dto/**</exclude>
+								<exclude>**/model/**</exclude>
+								<exclude>**/entity/**</exclude>
+
+								<!-- Exclui enums -->
+								<exclude>**/enums/**</exclude>
+
+								<!-- Exclui constants e utils se necessário -->
+								<exclude>**/constant/**</exclude>
+								<exclude>**/constants/**</exclude>
+								<exclude>**/util/**</exclude>
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
