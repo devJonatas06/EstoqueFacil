@@ -50,6 +50,7 @@ logging:
     org.hibernate: ERROR
     com.project.EstoqueFacil: DEBUG
 
+
 management:
   endpoints:
     web:
