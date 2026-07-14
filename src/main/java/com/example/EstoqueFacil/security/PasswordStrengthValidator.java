@@ -40,12 +40,14 @@ public class PasswordStrengthValidator {
             throw new IllegalArgumentException("Password cannot be empty.");
         }
 
-        if (password.length() < 8) {
-            log.warn("PasswordStrengthValidator - Senha muito curta: {} caracteres", password.length());
+        // Fazemos o trim() e o toLowerCase() aqui para ignorar espaços nas pontas antes de validar
+        String lower = password.trim().toLowerCase();
+
+        if (lower.length() < 8) {
+            log.warn("PasswordStrengthValidator - Senha muito curta: {} caracteres", lower.length());
             throw new IllegalArgumentException("Password must be at least 8 characters long.");
         }
 
-        String lower = password.toLowerCase();
         if (weakPasswords.contains(lower)) {
             log.warn("PasswordStrengthValidator - Senha comum detectada");
             throw new IllegalArgumentException("This password is too common. Please choose a more unique password.");
@@ -62,7 +64,6 @@ public class PasswordStrengthValidator {
             if (lowerPass.startsWith(weak) && lowerPass.length() > weak.length()) {
                 String suffix = lowerPass.substring(weak.length());
 
-                
                 String cleanSuffix = suffix.trim();
 
                 if (cleanSuffix.matches("\\d+") || cleanSuffix.matches("^[!@#$%^&*()]+$")) {
