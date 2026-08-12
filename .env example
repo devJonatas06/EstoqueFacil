@@ -1,19 +1,70 @@
-# ======================================
-# ESTOQUEFACIL - VARIÁVEIS DE AMBIENTE
-# ======================================
-# Copie este arquivo para .env e preencha com seus valores
+# ============================================
+# BANCO DE DADOS (SUBSTITUA PELOS SEUS VALORES)
+# ============================================
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/EstoqueFacil
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=SUA_SENHA_AQUI
+POSTGRES_DB=EstoqueFacil
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=SUA_SENHA_AQUI
+POSTGRES_PORT=5432
 
-# Banco de Dados
-SPRING_DATASOURCE_PASSWORD=sua_senha_aqui
-POSTGRES_PASSWORD=sua_senha_aqui
+# ============================================
+# SPRING
+# ============================================
+SPRING_APPLICATION_NAME=estoque-facil
+SPRING_PROFILES_ACTIVE=docker
+APP_PORT=8080
 
-# JWT Security (gere uma chave com: openssl rand -hex 32)
-JWT_SECRET=SUA_CHAVE_JWT_AQUI_MINIMO_32_CARACTERES
+# ============================================
+# JWT SECURITY (gere uma chave com: openssl rand -hex 32)
+# ============================================
+JWT_SECRET=SEU_JWT_SECRET_AQUI
+API_SECURITY_TOKEN_SECRET=SEU_JWT_SECRET_AQUI
+JWT_EXPIRATION=3600000
 
-# Admin inicial (opcional - o DataInitializer usará esses valores)
+# ============================================
+# RABBITMQ
+# ============================================
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+RABBITMQ_MGMT_PORT=15672
+RABBITMQ_USER=admin
+RABBITMQ_PASS=SUA_SENHA_RABBITMQ_AQUI
+
+# ============================================
+# EMAIL
+# ============================================
+EMAIL_USERNAME=seu-email@gmail.com
+EMAIL_PASSWORD=senha-de-aplicativo
+EMAIL_RECIPIENT=gestor@empresa.com
+EMAIL_SENDER=no-reply@estoque.com
+
+# ============================================
+# ADMIN INICIAL
+# ============================================
 ADMIN_EMAIL=admin@estoque.com
 ADMIN_PASSWORD=Admin@123
 ADMIN_NAME=Administrador
 
-# CORS (opcional)
+# ============================================
+# CORS
+# ============================================
 CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:3000
+
+# ============================================
+# MANAGEMENT / OBSERVABILIDADE
+# ============================================
+MANAGEMENT_ENDPOINTS=health,info,metrics,prometheus
+
+# ============================================
+# PROMETHEUS
+# ============================================
+PROMETHEUS_PORT=9090
+
+# ============================================
+# GRAFANA
+# ============================================
+GRAFANA_PORT=3000
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=admin
