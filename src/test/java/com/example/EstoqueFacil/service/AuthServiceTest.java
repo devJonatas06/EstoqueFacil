@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+class   AuthServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private RoleRepository roleRepository;
