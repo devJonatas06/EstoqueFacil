@@ -5,6 +5,8 @@ import com.example.EstoqueFacil.entity.Product;
 import com.example.EstoqueFacil.entity.ProductBatch;
 import com.example.EstoqueFacil.entity.StockMovement;
 import com.example.EstoqueFacil.entity.StockMovementType;
+import com.example.EstoqueFacil.event.BatchExpiredEvent;
+import com.example.EstoqueFacil.event.NotificacaoProducer;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
@@ -31,6 +33,7 @@ public class ReportServiceImpl implements ReportService {
     private final StockMovementRepository stockMovementRepository;
     private final ProductBatchRepository productBatchRepository;
     private final ProductRepository productRepository;
+    private final NotificacaoProducer notificacaoProducer;
 
     @Override
     public List<BestSellingProductDTO> getBestSellingProducts() {
@@ -218,8 +221,6 @@ public class ReportServiceImpl implements ReportService {
         return productBatchRepository.getTotalStockByProduct(productId);
     }
 
-    // ReportServiceImpl.java
-
     private LocalDateTime getLastMovementDate(Long productId) {
         Optional<LocalDateTime> lastMovement = stockMovementRepository
                 .findLastMovementDateByProductId(productId);
@@ -231,7 +232,6 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime lastMovement = getLastMovementDate(productId);
 
         if (lastMovement == null) {
-            // Produto nunca foi vendido - considerar dias desde a criação
             Product product = productRepository.findById(productId).orElse(null);
             if (product != null && product.getCreatedAt() != null) {
                 return (int) ChronoUnit.DAYS.between(product.getCreatedAt(), LocalDateTime.now());
@@ -355,9 +355,7 @@ public class ReportServiceImpl implements ReportService {
         return totalSold / 30;
     }
 
-
     private Integer calculateDaysBelowMinimum(Long productId) {
-
         Product product = productRepository.findById(productId).orElse(null);
         if (product == null) return 0;
 
@@ -376,6 +374,19 @@ public class ReportServiceImpl implements ReportService {
 
         return 999;
     }
+
+    /**
+     * Além de calcular o prejuízo, publica um evento de lote vencido para
+     * cada lote encontrado.
+     *
+     * Nota de trade-off: como o AlertService também publica esse mesmo tipo
+     * de evento (via GET /reports/alerts/summary), chamar os dois
+     * endpoints pode gerar notificações duplicadas para o mesmo lote. Isso
+     * é aceitável para o MVP, mas numa evolução futura o ideal é mover a
+     * detecção para um job agendado (@Scheduled) único, com uma chave de
+     * idempotência (ex.: loteId + data) para não reenviar o mesmo alerta
+     * a cada chamada de API.
+     */
     @Override
     public LossReportDTO getLossReport() {
         long startTime = System.currentTimeMillis();
@@ -392,6 +403,7 @@ public class ReportServiceImpl implements ReportService {
 
         if (!expiredBatches.isEmpty()) {
             log.warn("Relatório de Perdas - Produtos vencidos encontrados. Total: {} unidades, Prejuízo: R$ {}", totalUnits, totalLoss);
+            publicarEventosLoteVencido(expiredBatches);
         }
 
         List<ExpiredBatchDTO> expiredDTOs = expiredBatches.stream()
@@ -416,6 +428,24 @@ public class ReportServiceImpl implements ReportService {
                 .totalEstimatedLoss(totalLoss)
                 .totalExpiredUnits(totalUnits)
                 .build();
+    }
+
+    private void publicarEventosLoteVencido(List<ProductBatch> lotes) {
+        for (ProductBatch lote : lotes) {
+            try {
+                BatchExpiredEvent evento = new BatchExpiredEvent(
+                        lote.getProduct().getId(),
+                        lote.getProduct().getName(),
+                        lote.getId(),
+                        lote.getExpirationDate(),
+                        lote.getQuantity(),
+                        LocalDateTime.now());
+                notificacaoProducer.publicarLoteVencido(evento);
+            } catch (Exception e) {
+                log.error("Falha ao montar/publicar evento de lote vencido para loteId: {}. Erro: {}",
+                        lote.getId(), e.getMessage(), e);
+            }
+        }
     }
 
     @Override

@@ -3,6 +3,10 @@ package com.example.EstoqueFacil.service;
 import com.example.EstoqueFacil.dto.report.*;
 import com.example.EstoqueFacil.entity.Product;
 import com.example.EstoqueFacil.entity.ProductBatch;
+import com.example.EstoqueFacil.event.BatchExpiredEvent;
+import com.example.EstoqueFacil.event.LowStockEvent;
+import com.example.EstoqueFacil.event.NotificacaoProducer;
+import com.example.EstoqueFacil.event.ProductStopEvent;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
@@ -23,9 +27,12 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class AlertServiceImpl implements AlertService {
 
+    private static final int DIAS_INATIVIDADE_PADRAO = 30;
+
     private final ProductRepository productRepository;
     private final ProductBatchRepository productBatchRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final NotificacaoProducer notificacaoProducer;
 
     @Override
     public List<Product> getLowStockProducts() {
@@ -56,22 +63,34 @@ public class AlertServiceImpl implements AlertService {
         return productRepository.findCriticalStockSince(since);
     }
 
+    /**
+     * Ponto de entrada da notificação: toda vez que o resumo de alertas é
+     * calculado, os problemas encontrados viram eventos publicados no
+     * RabbitMQ. A publicação nunca impede o resumo de ser retornado —
+     * cada bloco é isolado com try/catch dentro dos métodos privados de
+     * publicação.
+     */
     @Override
     public AlertSummaryDTO getAlertSummary() {
         List<Product> lowStock = getLowStockProducts();
-        List<Product> inactive = getInactiveProducts(30);
+        List<Product> inactive = getInactiveProducts(DIAS_INATIVIDADE_PADRAO);
         List<ProductBatch> expiring = getExpiringBatches(30);
         List<ProductBatch> expired = getExpiredBatches();
         List<Product> critical = getCriticalStockProducts(7);
 
         if (!lowStock.isEmpty()) {
             log.warn("Alerta - {} produtos com estoque abaixo do mínimo", lowStock.size());
+            publicarEventosEstoqueBaixo(lowStock);
         }
         if (!critical.isEmpty()) {
             log.warn("Alerta - {} produtos em situação CRÍTICA", critical.size());
         }
         if (!expired.isEmpty()) {
             log.warn("Alerta - {} lotes vencidos encontrados", expired.size());
+            publicarEventosLoteVencido(expired);
+        }
+        if (!inactive.isEmpty()) {
+            publicarEventosProdutoParado(inactive, DIAS_INATIVIDADE_PADRAO);
         }
 
         return AlertSummaryDTO.builder()
@@ -99,6 +118,62 @@ public class AlertServiceImpl implements AlertService {
     public List<LowStockProductDTO> getLowStockProductsDTO() {
         return convertToLowStockDTO(getLowStockProducts());
     }
+
+    // ---------- Publicação de eventos de notificação ----------
+
+    private void publicarEventosEstoqueBaixo(List<Product> produtos) {
+        for (Product produto : produtos) {
+            try {
+                LowStockEvent evento = new LowStockEvent(
+                        produto.getId(),
+                        produto.getName(),
+                        getCurrentStock(produto.getId()),
+                        produto.getMinimumStock(),
+                        LocalDateTime.now());
+                notificacaoProducer.publicarEstoqueBaixo(evento);
+            } catch (Exception e) {
+                log.error("Falha ao montar/publicar evento de estoque baixo para produtoId: {}. Erro: {}",
+                        produto.getId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private void publicarEventosLoteVencido(List<ProductBatch> lotes) {
+        for (ProductBatch lote : lotes) {
+            try {
+                BatchExpiredEvent evento = new BatchExpiredEvent(
+                        lote.getProduct().getId(),
+                        lote.getProduct().getName(),
+                        lote.getId(),
+                        lote.getExpirationDate(),
+                        lote.getQuantity(),
+                        LocalDateTime.now());
+                notificacaoProducer.publicarLoteVencido(evento);
+            } catch (Exception e) {
+                log.error("Falha ao montar/publicar evento de lote vencido para loteId: {}. Erro: {}",
+                        lote.getId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private void publicarEventosProdutoParado(List<Product> produtos, int diasSemMovimentacao) {
+        for (Product produto : produtos) {
+            try {
+                ProductStopEvent evento = new ProductStopEvent(
+                        produto.getId(),
+                        produto.getName(),
+                        (long) diasSemMovimentacao,
+                        produto.getSalePrice() != null ? produto.getSalePrice().doubleValue() : null,
+                        LocalDateTime.now());
+                notificacaoProducer.publicarProdutoParado(evento);
+            } catch (Exception e) {
+                log.error("Falha ao montar/publicar evento de produto parado para produtoId: {}. Erro: {}",
+                        produto.getId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    // ---------- Conversões existentes (sem alteração de comportamento) ----------
 
     private List<LowStockProductDTO> convertToLowStockDTO(List<Product> products) {
         return products.stream()
