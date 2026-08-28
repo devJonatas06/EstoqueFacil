@@ -1,18 +1,19 @@
-package com.example.EstoqueFacil.event;
+package com.example.EstoqueFacil.messaging.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductStopEvent implements Serializable {
+public class LowStockEvent implements Serializable {
     private Long produtoId;
     private String nomeProduto;
-    private Long diasSemVenda;
-    private Double ultimoPrecoVenda;
+    private Integer quantidadeAtual;
+    private Integer quantidadeMinima;
     private LocalDateTime dataEvento;
 }

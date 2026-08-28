@@ -1,4 +1,4 @@
-package com.example.EstoqueFacil.event;
+package com.example.EstoqueFacil.messaging.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

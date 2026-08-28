@@ -1,6 +1,9 @@
-package com.example.EstoqueFacil.event;
+package com.example.EstoqueFacil.messaging.consumer;
 
 import com.example.EstoqueFacil.config.RabbitMQConfig;
+import com.example.EstoqueFacil.messaging.event.BatchExpiredEvent;
+import com.example.EstoqueFacil.messaging.event.LowStockEvent;
+import com.example.EstoqueFacil.messaging.event.ProductStopEvent;
 import com.example.EstoqueFacil.service.EmailService;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +52,7 @@ public class NotificacaoConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.LOTE_VENCIDO_QUEUE)
     public void receberLoteVencido(BatchExpiredEvent evento, Channel channel,
-                                    @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+                                   @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("Consumindo evento de lote vencido - produtoId: {}, produto: '{}', loteId: {}, validade: {}",
                 evento.getProdutoId(), evento.getNomeProduto(), evento.getLoteId(), evento.getDataValidade());
 
@@ -64,7 +67,7 @@ public class NotificacaoConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.PRODUTO_PARADO_QUEUE)
     public void receberProdutoParado(ProductStopEvent evento, Channel channel,
-                                      @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+                                     @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("Consumindo evento de produto parado - produtoId: {}, produto: '{}', dias sem venda: {}",
                 evento.getProdutoId(), evento.getNomeProduto(), evento.getDiasSemVenda());
 

@@ -1,7 +1,10 @@
-package com.example.EstoqueFacil.event;
+package com.example.EstoqueFacil.messaging.producer;
 
 
 import com.example.EstoqueFacil.config.RabbitMQConfig;
+import com.example.EstoqueFacil.messaging.event.BatchExpiredEvent;
+import com.example.EstoqueFacil.messaging.event.LowStockEvent;
+import com.example.EstoqueFacil.messaging.event.ProductStopEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
