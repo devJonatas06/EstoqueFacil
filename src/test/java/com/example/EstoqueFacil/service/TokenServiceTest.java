@@ -1,6 +1,6 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

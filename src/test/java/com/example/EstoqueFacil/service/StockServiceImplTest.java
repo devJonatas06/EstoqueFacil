@@ -1,11 +1,11 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.stock.StockEntryDTO;
-import com.example.EstoqueFacil.dto.stock.StockExitDTO;
-import com.example.EstoqueFacil.entity.*;
+import com.example.EstoqueFacil.model.dto.request.stock.StockEntryRequestDTO;
+import com.example.EstoqueFacil.model.dto.request.stock.StockExitRequestDTO;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
-import com.example.EstoqueFacil.mapper.StockMapper;
+import com.example.EstoqueFacil.model.entity.*;
+import com.example.EstoqueFacil.model.mapper.StockMapper;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
@@ -18,8 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -79,7 +77,7 @@ class StockServiceImplTest {
     void shouldThrowExceptionWhenProductNotFoundOnEntry() {
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        StockEntryDTO entryDTO = new StockEntryDTO();
+        StockEntryRequestDTO entryDTO = new StockEntryRequestDTO();
         entryDTO.setProductId(999L);
         entryDTO.setQuantity(10);
         entryDTO.setUserId(1L);
@@ -95,7 +93,7 @@ class StockServiceImplTest {
         product.setActive(false);
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
-        StockEntryDTO entryDTO = new StockEntryDTO();
+        StockEntryRequestDTO entryDTO = new StockEntryRequestDTO();
         entryDTO.setProductId(1L);
         entryDTO.setQuantity(10);
         entryDTO.setUserId(1L);
@@ -108,7 +106,7 @@ class StockServiceImplTest {
     @Test
     @DisplayName("Deve lançar exceção quando quantidade for zero ou negativa na entrada")
     void shouldThrowExceptionWhenQuantityIsInvalid() {
-        StockEntryDTO entryDTO = new StockEntryDTO();
+        StockEntryRequestDTO entryDTO = new StockEntryRequestDTO();
         entryDTO.setProductId(1L);
         entryDTO.setQuantity(0);
         entryDTO.setUserId(1L);
@@ -125,7 +123,7 @@ class StockServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(productBatchRepository.save(any(ProductBatch.class))).thenReturn(batch1);
 
-        StockEntryDTO entryDTO = new StockEntryDTO();
+        StockEntryRequestDTO entryDTO = new StockEntryRequestDTO();
         entryDTO.setProductId(1L);
         entryDTO.setQuantity(10);
         entryDTO.setExpirationDate(LocalDate.now().plusDays(30));
@@ -146,7 +144,7 @@ class StockServiceImplTest {
         when(productBatchRepository.findByActiveTrueOrderByExpirationDate())
                 .thenReturn(Arrays.asList(batch1, batch2));
 
-        StockExitDTO exitDTO = new StockExitDTO();
+        StockExitRequestDTO exitDTO = new StockExitRequestDTO();
         exitDTO.setProductId(1L);
         exitDTO.setQuantity(12);
         exitDTO.setType(StockMovementType.SALE);
@@ -169,7 +167,7 @@ class StockServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(productBatchRepository.getTotalStockByProduct(1L)).thenReturn(5);
 
-        StockExitDTO exitDTO = new StockExitDTO();
+        StockExitRequestDTO exitDTO = new StockExitRequestDTO();
         exitDTO.setProductId(1L);
         exitDTO.setQuantity(10);
         exitDTO.setType(StockMovementType.SALE);
@@ -183,7 +181,7 @@ class StockServiceImplTest {
     @Test
     @DisplayName("Deve lançar exceção para tipo de saída inválido")
     void shouldThrowExceptionForInvalidExitType() {
-        StockExitDTO exitDTO = new StockExitDTO();
+        StockExitRequestDTO exitDTO = new StockExitRequestDTO();
         exitDTO.setProductId(1L);
         exitDTO.setQuantity(10);
         exitDTO.setType(null);

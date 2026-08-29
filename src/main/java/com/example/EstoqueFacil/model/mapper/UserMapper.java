@@ -1,9 +1,9 @@
-package com.example.EstoqueFacil.mapper;
+package com.example.EstoqueFacil.model.mapper;
 
-import com.example.EstoqueFacil.model.dto.user.UserRequestDTO;
-import com.example.EstoqueFacil.model.dto.user.UserResponseDTO;
-import com.example.EstoqueFacil.entity.Role;
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.dto.request.user.UserRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.user.UserResponseDTO;
+import com.example.EstoqueFacil.model.entity.Role;
+import com.example.EstoqueFacil.model.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;

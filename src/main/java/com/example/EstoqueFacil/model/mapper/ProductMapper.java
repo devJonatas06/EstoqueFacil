@@ -1,9 +1,9 @@
-package com.example.EstoqueFacil.mapper;
+package com.example.EstoqueFacil.model.mapper;
 
-import com.example.EstoqueFacil.model.dto.product.ProductRequestDTO;
-import com.example.EstoqueFacil.model.dto.product.ProductResponseDTO;
-import com.example.EstoqueFacil.model.dto.product.ProductUpdateDTO;
-import com.example.EstoqueFacil.entity.Product;
+import com.example.EstoqueFacil.model.dto.request.product.ProductCreateRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.product.ProductResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductUpdateRequestDTO;
+import com.example.EstoqueFacil.model.entity.Product;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ public class ProductMapper {
 
     private final ProductBatchRepository productBatchRepository;
 
-    public Product toEntity(ProductRequestDTO dto) {
+    public Product toEntity(ProductCreateRequestDTO dto) {
         Product product = new Product();
         product.setName(dto.getName());
         product.setBarcode(dto.getBarcode());
@@ -49,7 +49,7 @@ public class ProductMapper {
                 .build();
     }
 
-    public void updateEntity(Product product, ProductUpdateDTO dto) {
+    public void updateEntity(Product product, ProductUpdateRequestDTO dto) {
         if (dto.getName() != null) product.setName(dto.getName());
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
         if (dto.getMaker() != null) product.setMaker(dto.getMaker());

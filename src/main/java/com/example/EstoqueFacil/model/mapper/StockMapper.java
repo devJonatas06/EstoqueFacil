@@ -1,8 +1,8 @@
-package com.example.EstoqueFacil.mapper;
+package com.example.EstoqueFacil.model.mapper;
 
-import com.example.EstoqueFacil.model.dto.stock.StockMovementResponseDTO;
-import com.example.EstoqueFacil.entity.StockMovement;
-import com.example.EstoqueFacil.entity.StockMovementType;
+import com.example.EstoqueFacil.model.dto.response.stock.StockMovementResponseDTO;
+import com.example.EstoqueFacil.model.entity.StockMovement;
+import com.example.EstoqueFacil.model.entity.StockMovementType;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

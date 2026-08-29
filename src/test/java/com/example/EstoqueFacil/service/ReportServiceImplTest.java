@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.*;
-import com.example.EstoqueFacil.entity.*;
+import com.example.EstoqueFacil.model.dto.response.report.*;
+import com.example.EstoqueFacil.model.entity.*;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
@@ -19,9 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

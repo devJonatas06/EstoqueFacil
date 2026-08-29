@@ -1,5 +1,9 @@
 package com.example.EstoqueFacil.event;
 
+import com.example.EstoqueFacil.messaging.event.BatchExpiredEvent;
+import com.example.EstoqueFacil.messaging.event.LowStockEvent;
+import com.example.EstoqueFacil.messaging.producer.NotificacaoProducer;
+import com.example.EstoqueFacil.messaging.event.ProductStopEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

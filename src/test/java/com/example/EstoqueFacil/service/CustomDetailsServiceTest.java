@@ -1,8 +1,8 @@
 // src/test/java/com/example/EstoqueFacil/service/CustomDetailsServiceTest.java
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.entity.Role;
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.entity.Role;
+import com.example.EstoqueFacil.model.entity.User;
 import com.example.EstoqueFacil.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

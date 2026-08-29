@@ -1,8 +1,8 @@
-package com.example.EstoqueFacil.mapper;
+package com.example.EstoqueFacil.model.mapper;
 
-import com.example.EstoqueFacil.model.dto.category.CategoryRequestDTO;
-import com.example.EstoqueFacil.model.dto.category.CategoryResponseDTO;
-import com.example.EstoqueFacil.entity.Category;
+import com.example.EstoqueFacil.model.dto.request.category.CategoryRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.category.CategoryResponseDTO;
+import com.example.EstoqueFacil.model.entity.Category;
 import org.springframework.stereotype.Component;
 
 @Component

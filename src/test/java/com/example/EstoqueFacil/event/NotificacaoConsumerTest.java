@@ -1,5 +1,9 @@
 package com.example.EstoqueFacil.event;
 
+import com.example.EstoqueFacil.messaging.event.BatchExpiredEvent;
+import com.example.EstoqueFacil.messaging.event.LowStockEvent;
+import com.example.EstoqueFacil.messaging.consumer.NotificacaoConsumer;
+import com.example.EstoqueFacil.messaging.event.ProductStopEvent;
 import com.example.EstoqueFacil.service.EmailService;
 import com.rabbitmq.client.Channel;
 import org.junit.jupiter.api.BeforeEach;

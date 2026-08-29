@@ -1,10 +1,10 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.AlertDetailDTO;
-import com.example.EstoqueFacil.dto.report.AlertSummaryDTO;
-import com.example.EstoqueFacil.entity.Product;
-import com.example.EstoqueFacil.entity.ProductBatch;
-import com.example.EstoqueFacil.event.NotificacaoProducer;
+import com.example.EstoqueFacil.model.dto.response.report.AlertDetailDTO;
+import com.example.EstoqueFacil.model.dto.response.report.AlertSummaryDTO;
+import com.example.EstoqueFacil.model.entity.Product;
+import com.example.EstoqueFacil.model.entity.ProductBatch;
+import com.example.EstoqueFacil.messaging.producer.NotificacaoProducer;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;

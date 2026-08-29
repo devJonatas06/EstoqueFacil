@@ -1,13 +1,12 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.product.ProductRequestDTO;
-import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
-import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
-import com.example.EstoqueFacil.entity.Category;
-import com.example.EstoqueFacil.entity.Product;
+import com.example.EstoqueFacil.model.dto.request.product.ProductCreateRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.product.ProductResponseDTO;
+import com.example.EstoqueFacil.model.entity.Category;
+import com.example.EstoqueFacil.model.entity.Product;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
-import com.example.EstoqueFacil.mapper.ProductMapper;
+import com.example.EstoqueFacil.model.mapper.ProductMapper;
 import com.example.EstoqueFacil.repository.CategoryRepository;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
@@ -39,7 +38,7 @@ class ProductServiceImplTest {
 
     private Category category;
     private Product product;
-    private ProductRequestDTO requestDTO;
+    private ProductCreateRequestDTO requestDTO;
 
     @BeforeEach
     void setUp() {
@@ -58,7 +57,7 @@ class ProductServiceImplTest {
         product.setCategory(category);
         product.setActive(true);
 
-        requestDTO = new ProductRequestDTO();
+        requestDTO = new ProductCreateRequestDTO();
         requestDTO.setName("Smartphone");
         requestDTO.setBarcode("7891234567890");
         requestDTO.setCostPrice(BigDecimal.valueOf(500.00));

@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.AuditLogResponseDTO;
-import com.example.EstoqueFacil.entity.AuditLog;
+import com.example.EstoqueFacil.model.dto.response.report.AuditLogResponseDTO;
+import com.example.EstoqueFacil.model.entity.AuditLog;
 import com.example.EstoqueFacil.repository.AuditLogRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
