@@ -1,11 +1,11 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.category.CategoryRequestDTO;
-import com.example.EstoqueFacil.dto.category.CategoryResponseDTO;
-import com.example.EstoqueFacil.entity.Category;
+import com.example.EstoqueFacil.model.dto.request.category.CategoryRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.category.CategoryResponseDTO;
+import com.example.EstoqueFacil.model.entity.Category;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
-import com.example.EstoqueFacil.mapper.CategoryMapper;
+import com.example.EstoqueFacil.model.mapper.CategoryMapper;
 import com.example.EstoqueFacil.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

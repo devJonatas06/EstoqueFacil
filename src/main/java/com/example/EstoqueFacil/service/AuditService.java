@@ -1,6 +1,6 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.AuditLogResponseDTO;
+import com.example.EstoqueFacil.model.dto.response.report.AuditLogResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

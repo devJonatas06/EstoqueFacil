@@ -1,10 +1,8 @@
 // StockMovementRepository.java
 package com.example.EstoqueFacil.repository;
 
-import com.example.EstoqueFacil.dto.product.ProductSalesDTO;
-import com.example.EstoqueFacil.dto.report.BestSellingProductDTO;
-import com.example.EstoqueFacil.entity.StockMovement;
-import com.example.EstoqueFacil.entity.StockMovementType;
+import com.example.EstoqueFacil.model.entity.StockMovement;
+import com.example.EstoqueFacil.model.entity.StockMovementType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

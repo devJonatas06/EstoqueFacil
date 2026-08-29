@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.controller;
 
-import com.example.EstoqueFacil.dto.category.CategoryRequestDTO;
-import com.example.EstoqueFacil.dto.category.CategoryResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.category.CategoryRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.category.CategoryResponseDTO;
 import com.example.EstoqueFacil.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

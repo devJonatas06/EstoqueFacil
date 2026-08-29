@@ -1,12 +1,11 @@
 package com.example.EstoqueFacil.controller;
 
-import com.example.EstoqueFacil.dto.auth.LoginRequestDto;
-import com.example.EstoqueFacil.dto.auth.RegisterRequestDto;
-import com.example.EstoqueFacil.dto.auth.ResponseDto;
+import com.example.EstoqueFacil.model.dto.request.auth.LoginRequestDto;
+import com.example.EstoqueFacil.model.dto.request.auth.RegisterRequestDto;
+import com.example.EstoqueFacil.model.dto.response.auth.ResponseDto;
 import com.example.EstoqueFacil.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,6 +1,6 @@
 package com.example.EstoqueFacil.exception;
 
-import com.example.EstoqueFacil.dto.error.ErrorResponseDTO;
+import com.example.EstoqueFacil.model.dto.response.error.ErrorResponseDTO;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;

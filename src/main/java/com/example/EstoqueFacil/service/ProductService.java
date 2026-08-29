@@ -1,17 +1,17 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.product.ProductFilterDTO;
-import com.example.EstoqueFacil.dto.product.ProductRequestDTO;
-import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
-import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductFilterDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductCreateRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.product.ProductResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductUpdateRequestDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
 
-    ProductResponseDTO create(ProductRequestDTO requestDTO);
+    ProductResponseDTO create(ProductCreateRequestDTO requestDTO);
 
-    ProductResponseDTO update(Long id, ProductUpdateDTO updateDTO);
+    ProductResponseDTO update(Long id, ProductUpdateRequestDTO updateDTO);
 
     ProductResponseDTO findById(Long id);
 

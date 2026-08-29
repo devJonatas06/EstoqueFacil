@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.security;
 
-import com.example.EstoqueFacil.dto.user.UserPrincipal;
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.dto.request.user.UserPrincipal;
+import com.example.EstoqueFacil.model.entity.User;
 import com.example.EstoqueFacil.repository.UserRepository;
 import com.example.EstoqueFacil.service.TokenService;
 import jakarta.servlet.FilterChain;

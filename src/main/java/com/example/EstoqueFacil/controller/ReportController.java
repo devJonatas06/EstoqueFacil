@@ -1,7 +1,8 @@
 package com.example.EstoqueFacil.controller;
 
-import com.example.EstoqueFacil.dto.report.*;
 import com.example.EstoqueFacil.exception.BusinessException;
+import com.example.EstoqueFacil.model.dto.response.report.*;
+import com.example.EstoqueFacil.model.entity.StockMovementType;
 import com.example.EstoqueFacil.service.AlertService;
 import com.example.EstoqueFacil.service.ReportService;
 import com.example.EstoqueFacil.service.PdfReportService;
@@ -246,9 +247,9 @@ public class ReportController {
         List<StockMovementReportDTO> response = reportService.getMovementsByPeriod(start, end);
         long duration = System.currentTimeMillis() - startTime;
 
-        long entries = response.stream().filter(m -> m.getType() == com.example.EstoqueFacil.entity.StockMovementType.ENTRY).count();
-        long sales = response.stream().filter(m -> m.getType() == com.example.EstoqueFacil.entity.StockMovementType.SALE).count();
-        long losses = response.stream().filter(m -> m.getType() == com.example.EstoqueFacil.entity.StockMovementType.LOSS).count();
+        long entries = response.stream().filter(m -> m.getType() == StockMovementType.ENTRY).count();
+        long sales = response.stream().filter(m -> m.getType() == StockMovementType.SALE).count();
+        long losses = response.stream().filter(m -> m.getType() == StockMovementType.LOSS).count();
 
         log.info("Relatório - Movimentações gerado. Registros: {}, Entradas: {}, Vendas: {}, Perdas: {}, Tempo: {}ms",
                 response.size(), entries, sales, losses, duration);

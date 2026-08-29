@@ -1,8 +1,8 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.*;
-import com.example.EstoqueFacil.entity.Product;
-import com.example.EstoqueFacil.entity.ProductBatch;
+import com.example.EstoqueFacil.model.dto.response.report.*;
+import com.example.EstoqueFacil.model.entity.Product;
+import com.example.EstoqueFacil.model.entity.ProductBatch;
 import com.example.EstoqueFacil.messaging.event.BatchExpiredEvent;
 import com.example.EstoqueFacil.messaging.event.LowStockEvent;
 import com.example.EstoqueFacil.messaging.producer.NotificacaoProducer;

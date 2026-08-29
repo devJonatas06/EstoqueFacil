@@ -1,14 +1,14 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.product.ProductFilterDTO;
-import com.example.EstoqueFacil.dto.product.ProductRequestDTO;
-import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
-import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
-import com.example.EstoqueFacil.entity.Category;
-import com.example.EstoqueFacil.entity.Product;
+import com.example.EstoqueFacil.model.dto.request.product.ProductFilterDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductCreateRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.product.ProductResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductUpdateRequestDTO;
+import com.example.EstoqueFacil.model.entity.Category;
+import com.example.EstoqueFacil.model.entity.Product;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
-import com.example.EstoqueFacil.mapper.ProductMapper;
+import com.example.EstoqueFacil.model.mapper.ProductMapper;
 import com.example.EstoqueFacil.repository.CategoryRepository;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
@@ -32,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductBatchRepository productBatchRepository;
 
     @Override
-    public ProductResponseDTO create(ProductRequestDTO requestDTO) {
+    public ProductResponseDTO create(ProductCreateRequestDTO requestDTO) {
         if (productRepository.existsByBarcode(requestDTO.getBarcode())) {
             log.warn("Produto - Tentativa de criar com código de barras duplicado: {}", requestDTO.getBarcode());
             throw new BusinessException("Código de barras já existe: " + requestDTO.getBarcode());
@@ -54,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponseDTO update(Long id, ProductUpdateDTO updateDTO) {
+    public ProductResponseDTO update(Long id, ProductUpdateRequestDTO updateDTO) {
         Product product = findByIdEntity(id);
         productMapper.updateEntity(product, updateDTO);
         Product updated = productRepository.save(product);

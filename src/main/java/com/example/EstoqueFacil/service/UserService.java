@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.user.UserRequestDTO;
-import com.example.EstoqueFacil.dto.user.UserResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.user.UserRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.user.UserResponseDTO;
 
 import java.util.List;
 

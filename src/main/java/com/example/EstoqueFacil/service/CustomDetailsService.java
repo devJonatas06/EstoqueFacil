@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.user.UserPrincipal;
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.dto.request.user.UserPrincipal;
+import com.example.EstoqueFacil.model.entity.User;
 import com.example.EstoqueFacil.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

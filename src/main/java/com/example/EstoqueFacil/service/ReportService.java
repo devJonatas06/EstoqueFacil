@@ -1,6 +1,6 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.*;
+import com.example.EstoqueFacil.model.dto.response.report.*;
 
 import java.time.LocalDateTime;
 import java.util.List;

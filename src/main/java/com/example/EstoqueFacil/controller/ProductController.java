@@ -1,10 +1,10 @@
 package com.example.EstoqueFacil.controller;
 
-import com.example.EstoqueFacil.dto.common.PageableResponse;
-import com.example.EstoqueFacil.dto.product.ProductFilterDTO;
-import com.example.EstoqueFacil.dto.product.ProductRequestDTO;
-import com.example.EstoqueFacil.dto.product.ProductResponseDTO;
-import com.example.EstoqueFacil.dto.product.ProductUpdateDTO;
+import com.example.EstoqueFacil.model.dto.response.common.PageableResponse;
+import com.example.EstoqueFacil.model.dto.request.product.ProductFilterDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductCreateRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.product.ProductResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.product.ProductUpdateRequestDTO;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,7 +58,7 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos (código duplicado, preços inválidos)", content = @Content),
             @ApiResponse(responseCode = "403", description = "Acesso negado - Necessário role ADMIN", content = @Content)
     })
-    public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductRequestDTO requestDTO) {
+    public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductCreateRequestDTO requestDTO) {
         log.info("Produto - ADMIN criando. Nome: {}, Código: {}, Preço venda: {}",
                 requestDTO.getName(), requestDTO.getBarcode(), requestDTO.getSalePrice());
 
@@ -83,7 +83,7 @@ public class ProductController {
     })
     public ResponseEntity<ProductResponseDTO> update(
             @PathVariable @Min(value = 1, message = "ID do produto deve ser maior que 0") Long id,
-            @Valid @RequestBody ProductUpdateDTO dto) {
+            @Valid @RequestBody ProductUpdateRequestDTO dto) {
 
         log.info("Produto - ADMIN atualizando. ID: {}, Nome: {}", id, dto.getName());
 

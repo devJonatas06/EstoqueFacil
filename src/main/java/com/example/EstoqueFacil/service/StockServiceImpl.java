@@ -1,12 +1,12 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.stock.StockEntryDTO;
-import com.example.EstoqueFacil.dto.stock.StockExitDTO;
-import com.example.EstoqueFacil.dto.stock.StockMovementResponseDTO;
-import com.example.EstoqueFacil.entity.*;
+import com.example.EstoqueFacil.model.dto.request.stock.StockEntryRequestDTO;
+import com.example.EstoqueFacil.model.dto.request.stock.StockExitRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.stock.StockMovementResponseDTO;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
-import com.example.EstoqueFacil.mapper.StockMapper;
+import com.example.EstoqueFacil.model.entity.*;
+import com.example.EstoqueFacil.model.mapper.StockMapper;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;
@@ -33,7 +33,7 @@ public class StockServiceImpl implements StockService {
     private final StockMapper stockMapper;
 
     @Override
-    public void registerEntry(StockEntryDTO entryDTO) {
+    public void registerEntry(StockEntryRequestDTO entryDTO) {
         validateQuantity(entryDTO.getQuantity());
 
         Product product = getProductOrThrow(entryDTO.getProductId());
@@ -53,7 +53,7 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public void registerExit(StockExitDTO exitDTO) {
+    public void registerExit(StockExitRequestDTO exitDTO) {
         validateQuantity(exitDTO.getQuantity());
         validateExitType(exitDTO.getType());
 

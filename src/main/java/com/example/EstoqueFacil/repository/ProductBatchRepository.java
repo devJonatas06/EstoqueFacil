@@ -1,6 +1,6 @@
 package com.example.EstoqueFacil.repository;
 
-import com.example.EstoqueFacil.entity.ProductBatch;
+import com.example.EstoqueFacil.model.entity.ProductBatch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface    ProductBatchRepository extends JpaRepository<ProductBatch, Long> {
 

@@ -1,6 +1,9 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.report.*;
+import com.example.EstoqueFacil.model.dto.response.report.FinancialReportDTO;
+import com.example.EstoqueFacil.model.dto.response.report.LossReportDTO;
+import com.example.EstoqueFacil.model.dto.response.report.PerformanceReportDTO;
+import com.example.EstoqueFacil.model.dto.response.report.StockIntelligenceReportDTO;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;

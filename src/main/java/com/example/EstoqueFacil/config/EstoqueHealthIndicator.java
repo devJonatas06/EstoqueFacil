@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.config;
 
-import com.example.EstoqueFacil.entity.ProductBatch;
-import com.example.EstoqueFacil.entity.StockMovementType;
+import com.example.EstoqueFacil.model.entity.ProductBatch;
+import com.example.EstoqueFacil.model.entity.StockMovementType;
 import com.example.EstoqueFacil.repository.ProductBatchRepository;
 import com.example.EstoqueFacil.repository.ProductRepository;
 import com.example.EstoqueFacil.repository.StockMovementRepository;

@@ -1,6 +1,6 @@
 package com.example.EstoqueFacil.repository;
 
-import com.example.EstoqueFacil.entity.Product;
+import com.example.EstoqueFacil.model.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

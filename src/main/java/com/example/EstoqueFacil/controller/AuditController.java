@@ -1,10 +1,9 @@
 package com.example.EstoqueFacil.controller;
 
-import com.example.EstoqueFacil.dto.report.AuditLogResponseDTO;
+import com.example.EstoqueFacil.model.dto.response.report.AuditLogResponseDTO;
 import com.example.EstoqueFacil.service.AuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

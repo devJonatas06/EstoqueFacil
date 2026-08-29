@@ -1,9 +1,8 @@
 package com.example.EstoqueFacil.controller;
 
-import com.example.EstoqueFacil.dto.stock.StockEntryDTO;
-import com.example.EstoqueFacil.dto.stock.StockExitDTO;
-import com.example.EstoqueFacil.dto.stock.StockMovementResponseDTO;
-import com.example.EstoqueFacil.exception.BusinessException;
+import com.example.EstoqueFacil.model.dto.request.stock.StockEntryRequestDTO;
+import com.example.EstoqueFacil.model.dto.request.stock.StockExitRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.stock.StockMovementResponseDTO;
 import com.example.EstoqueFacil.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,7 +50,7 @@ public class StockController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos (quantidade zerada, produto inativo)", content = @Content),
             @ApiResponse(responseCode = "404", description = "Produto ou usuário não encontrado", content = @Content)
     })
-    public ResponseEntity<Void> registerEntry(@Valid @RequestBody StockEntryDTO entryDTO) {
+    public ResponseEntity<Void> registerEntry(@Valid @RequestBody StockEntryRequestDTO entryDTO) {
         log.info("Estoque - ENTRADA. Produto ID: {}, Quantidade: {}, Usuário ID: {}",
                 entryDTO.getProductId(), entryDTO.getQuantity(), entryDTO.getUserId());
 
@@ -79,7 +78,7 @@ public class StockController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos ou estoque insuficiente", content = @Content),
             @ApiResponse(responseCode = "404", description = "Produto ou usuário não encontrado", content = @Content)
     })
-    public ResponseEntity<Void> registerExit(@Valid @RequestBody StockExitDTO exitDTO) {
+    public ResponseEntity<Void> registerExit(@Valid @RequestBody StockExitRequestDTO exitDTO) {
         log.info("Estoque - SAÍDA. Produto ID: {}, Quantidade: {}, Tipo: {}, Usuário ID: {}",
                 exitDTO.getProductId(), exitDTO.getQuantity(), exitDTO.getType(), exitDTO.getUserId());
 

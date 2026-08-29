@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.specification;
 
-import com.example.EstoqueFacil.dto.product.ProductFilterDTO;
-import com.example.EstoqueFacil.entity.Product;
+import com.example.EstoqueFacil.model.dto.request.product.ProductFilterDTO;
+import com.example.EstoqueFacil.model.entity.Product;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 

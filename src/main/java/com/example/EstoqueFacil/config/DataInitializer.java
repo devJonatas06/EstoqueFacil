@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.config;
 
-import com.example.EstoqueFacil.entity.Role;
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.entity.Role;
+import com.example.EstoqueFacil.model.entity.User;
 import com.example.EstoqueFacil.repository.RoleRepository;
 import com.example.EstoqueFacil.repository.UserRepository;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("✅ Roles verificadas/criadas");
 
-        // Pegar credenciais do .env
+        // Pegar credenciais do .env example
         String adminEmail = env.getRequiredProperty("ADMIN_EMAIL");
         String adminPassword = env.getRequiredProperty("ADMIN_PASSWORD");
         String adminName = env.getRequiredProperty("ADMIN_NAME");

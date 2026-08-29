@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.category.CategoryRequestDTO;
-import com.example.EstoqueFacil.dto.category.CategoryResponseDTO;
+import com.example.EstoqueFacil.model.dto.request.category.CategoryRequestDTO;
+import com.example.EstoqueFacil.model.dto.response.category.CategoryResponseDTO;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package com.example.EstoqueFacil.service;
 
 
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.entity.User;
 import com.example.EstoqueFacil.repository.UserRepository;
 import com.example.EstoqueFacil.security.PasswordStrengthValidator;
 import lombok.RequiredArgsConstructor;

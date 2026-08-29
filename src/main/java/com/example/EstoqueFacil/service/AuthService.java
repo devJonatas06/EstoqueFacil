@@ -1,10 +1,10 @@
 package com.example.EstoqueFacil.service;
 
-import com.example.EstoqueFacil.dto.auth.LoginRequestDto;
-import com.example.EstoqueFacil.dto.auth.RegisterRequestDto;
-import com.example.EstoqueFacil.dto.auth.ResponseDto;
-import com.example.EstoqueFacil.entity.Role;
-import com.example.EstoqueFacil.entity.User;
+import com.example.EstoqueFacil.model.dto.request.auth.LoginRequestDto;
+import com.example.EstoqueFacil.model.dto.request.auth.RegisterRequestDto;
+import com.example.EstoqueFacil.model.dto.response.auth.ResponseDto;
+import com.example.EstoqueFacil.model.entity.Role;
+import com.example.EstoqueFacil.model.entity.User;
 import com.example.EstoqueFacil.exception.BusinessException;
 import com.example.EstoqueFacil.exception.ResourceNotFoundException;
 import com.example.EstoqueFacil.repository.RoleRepository;
